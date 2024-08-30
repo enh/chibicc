@@ -1,0 +1,12 @@
+* optimize is*() for ascii
+* remove __TIME__ and __DATE__
+* use .string and .long when appropriate
+* gnu stack note
+* #embed
+* #pragma once
+* bool/true/false
+* fix toybox build
+* constant propagation
+* register allocation rather than stack-based
+* optimize remove_backslash_newline()
+* optimize convert_universal_chars()
