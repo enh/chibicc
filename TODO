@@ -5,7 +5,12 @@
 * #pragma once
 * bool/true/false
 * fix toybox build
+  * _N() macro in kconfig
+  * can't parse (and bad error message from) <regex.h>
 * constant propagation
 * register allocation rather than stack-based
 * optimize remove_backslash_newline()
 * optimize convert_universal_chars()
+* add arm64 backend
+* add riscv64 backend
+* macOS support?
