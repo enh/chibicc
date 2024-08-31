@@ -4,7 +4,6 @@
   * don't .align 1
   * don't .data if we're already in data
 * use .rodata
-* gnu stack note
 * .ident?
 * c language features
   * #embed
