@@ -1407,14 +1407,36 @@ static void emit_data(Obj *prog) {
       println("%s:", var->name);
 
       Relocation *rel = var->rel;
-      int pos = 0;
-      while (pos < var->ty->size) {
-        if (rel && rel->offset == pos) {
-          println("  .quad %s%+ld", *rel->label, rel->addend);
-          rel = rel->next;
-          pos += 8;
-        } else {
-          println("  .byte %d", var->init_data[pos++]);
+      if (var->init_data_is_string_literal) {
+        fprintf(output_file, "  .ascii \"");
+        for (int i = 0; i < var->ty->size; i++) {
+          char c = var->init_data[i];
+          switch (c) {
+            case '\0': fprintf(output_file, "\\0"); break;
+            case '\n': fprintf(output_file, "\\n"); break;
+            case '\r': fprintf(output_file, "\\r"); break;
+            case '\t': fprintf(output_file, "\\t"); break;
+            case '"':  fprintf(output_file, "\\\""); break;
+            default:
+              if (c >= 0x20) {
+                fputc(var->init_data[i], output_file);
+              } else {
+                fprintf(output_file, "\\%03o", var->init_data[i]); break;
+              }
+              break;
+          }
+        }
+        fprintf(output_file, "\"\n");
+      } else {
+        int pos = 0;
+        while (pos < var->ty->size) {
+          if (rel && rel->offset == pos) {
+            println("  .quad %s%+ld", *rel->label, rel->addend);
+            rel = rel->next;
+            pos += 8;
+          } else {
+            println("  .byte %d", var->init_data[pos++]);
+          }
         }
       }
       continue;

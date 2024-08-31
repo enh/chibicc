@@ -143,6 +143,7 @@ struct Obj {
   bool is_tentative;
   bool is_tls;
   char *init_data;
+  bool init_data_is_string_literal;
   Relocation *rel;
 
   // Function
