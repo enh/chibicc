@@ -1,15 +1,24 @@
-* use .string and .long when appropriate
+* more readable -S
+  * use .short/.long/.quad when appropriate
+  * move .size to end
+  * don't .align 1
+  * don't .data if we're already in data
+* use .rodata
 * gnu stack note
-* #embed
-* #pragma once
-* bool/true/false
+* .ident?
+* c language features
+  * #embed
+  * #pragma once
+  * bool/true/false
 * fix toybox build
   * _N() macro in kconfig
   * can't parse (and bad error message from) <regex.h>
-* constant propagation
-* register allocation rather than stack-based
-* optimize remove_backslash_newline()
-* optimize convert_universal_chars()
+* generated code performance
+  * constant propagation
+  * register allocation rather than stack-based
+* compile-time performance
+  * optimize remove_backslash_newline()
+  * optimize convert_universal_chars()
 * add arm64 backend
 * add riscv64 backend
 * macOS support?
