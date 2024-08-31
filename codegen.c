@@ -1422,7 +1422,7 @@ static void emit_data(Obj *prog) {
               if (c >= 0x20) {
                 fputc(var->init_data[i], output_file);
               } else {
-                fprintf(output_file, "\\%03o", var->init_data[i]); break;
+                fprintf(output_file, "\\%03o", var->init_data[i] & 0xff); break;
               }
               break;
           }
