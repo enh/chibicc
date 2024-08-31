@@ -1416,6 +1416,7 @@ static void emit_data(Obj *prog) {
             case '\n': fprintf(output_file, "\\n"); break;
             case '\r': fprintf(output_file, "\\r"); break;
             case '\t': fprintf(output_file, "\\t"); break;
+            case '\\': fprintf(output_file, "\\\\"); break;
             case '"':  fprintf(output_file, "\\\""); break;
             default:
               if (c >= 0x20) {
