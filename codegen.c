@@ -1410,7 +1410,7 @@ static void emit_data(Obj *prog) {
     if (var->init_data) {
       emit_section(var->is_tls ? tdata : data);
       println("  .type %s, @object", var->name);
-      if (align > 1) println("  .align %d", align);
+      if (align > 1) println("  .balign %d", align);
       println("%s:", var->name);
 
       Relocation *rel = var->rel;
@@ -1453,7 +1453,7 @@ static void emit_data(Obj *prog) {
 
     // .bss or .tbss
     emit_section(var->is_tls ? tbss : bss);
-    if (align > 1) println("  .align %d", align);
+    if (align > 1) println("  .balign %d", align);
     println("%s:", var->name);
     println("  .zero %d", var->ty->size);
   }
