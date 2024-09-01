@@ -1403,7 +1403,7 @@ static void emit_data(Obj *prog) {
 
       println("  .type %s, @object", var->name);
       println("  .size %s, %d", var->name, var->ty->size);
-      println("  .align %d", align);
+      if (align > 1) println("  .align %d", align);
       println("%s:", var->name);
 
       Relocation *rel = var->rel;
@@ -1449,7 +1449,7 @@ static void emit_data(Obj *prog) {
     else
       println("  .bss");
 
-    println("  .align %d", align);
+    if (align > 1) println("  .align %d", align);
     println("%s:", var->name);
     println("  .zero %d", var->ty->size);
   }
