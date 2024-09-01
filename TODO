@@ -1,6 +1,5 @@
 * more readable -S
   * use .short/.long/.quad when appropriate
-  * move .size to end
 * use .rodata
 * .ident?
 * c language features

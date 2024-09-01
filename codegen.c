@@ -1410,7 +1410,6 @@ static void emit_data(Obj *prog) {
     if (var->init_data) {
       emit_section(var->is_tls ? tdata : data);
       println("  .type %s, @object", var->name);
-      println("  .size %s, %d", var->name, var->ty->size);
       if (align > 1) println("  .align %d", align);
       println("%s:", var->name);
 
@@ -1448,6 +1447,7 @@ static void emit_data(Obj *prog) {
           }
         }
       }
+      println("  .size %s, %d", var->name, var->ty->size);
       continue;
     }
 
@@ -1603,6 +1603,7 @@ static void emit_text(Obj *prog) {
     println("  mov %%rbp, %%rsp");
     println("  pop %%rbp");
     println("  ret");
+    println("  .size %s, .-%s", fn->name, fn->name);
   }
 }
 
