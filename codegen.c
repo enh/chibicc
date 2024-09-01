@@ -1376,16 +1376,16 @@ static void assign_lvar_offsets(Obj *prog) {
 }
 
 enum Section { none, bss, tbss, data, tdata };
-enum Section current_section = 0;
+static enum Section current_section = 0;
 
 static void emit_section(enum Section s) {
   if (s == current_section) return;
   switch (s) {
-    case data:  println("\n  .data"); break;
-    case tdata: println("\n  .section .tdata,\"awT\",@progbits"); break;
-    case tbss:  println("\n  .section .tbss,\"awT\",@nobits"); break;
-    case bss:   println("\n  .bss"); break;
-    default:    abort();
+    case data:  println("  .data"); break;
+    case tdata: println("  .section .tdata,\"awT\",@progbits"); break;
+    case tbss:  println("  .section .tbss,\"awT\",@nobits"); break;
+    case bss:   println("  .bss"); break;
+    default:    unreachable();
   }
   current_section = s;
 }
@@ -1395,10 +1395,7 @@ static void emit_data(Obj *prog) {
     if (var->is_function || !var->is_definition)
       continue;
 
-    if (var->is_static)
-      println("  .local %s", var->name);
-    else
-      println("  .globl %s", var->name);
+    println("\n  .%s %s", var->is_static ? "local" : "globl", var->name);
 
     int align = (var->ty->kind == TY_ARRAY && var->ty->size >= 16)
       ? MAX(16, var->align) : var->align;
@@ -1509,11 +1506,7 @@ static void emit_text(Obj *prog) {
     if (!fn->is_live)
       continue;
 
-    if (fn->is_static)
-      println("  .local %s", fn->name);
-    else
-      println("  .globl %s", fn->name);
-
+    println("\n  .%s %s", fn->is_static ? "local" : "global", fn->name);
     println("  .type %s, @function", fn->name);
     println("%s:", fn->name);
     current_fn = fn;
