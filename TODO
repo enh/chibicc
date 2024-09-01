@@ -1,14 +1,34 @@
 * more readable -S
   * use .short/.long/.quad when appropriate
   * move .size to end
-  * don't .align 1
-  * don't .data if we're already in data
 * use .rodata
 * .ident?
 * c language features
+  * unnamed arguments in function definitions
+  * zero initialization with {}
+  * single-argument static_assert
+  * void foo() => void foo(void)
+  * [[deprecated]]
+  * [[fallthrough]]
+  * [[maybe_unused]]
+  * [[nodiscard]]
+  * [[noreturn]]
+  * u8''
+  * #error/#warning
   * #embed
   * #pragma once
-  * bool/true/false
+  * __has_include()
+  * true/false
+  * _Alignas -> alignas
+  * _Alignof -> alignof
+  * _Bool -> bool
+  * _Static_assert -> static_assert
+  * _Thread_local -> thread_local
+  * __builtin_*_overflow() for <stdckdint.h>
+  * nullptr/nullptr_t
+  * constexpr
+  * typeof()
+  * ' digit separator for literals
 * fix toybox build
   * _N() macro in kconfig
   * can't parse (and bad error message from) <regex.h>
@@ -18,6 +38,7 @@
 * compile-time performance
   * optimize remove_backslash_newline()
   * optimize convert_universal_chars()
+  * does detect_include_guard() pull its weight?
 * add arm64 backend
 * add riscv64 backend
 * macOS support?
