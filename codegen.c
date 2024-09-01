@@ -1375,6 +1375,21 @@ static void assign_lvar_offsets(Obj *prog) {
   }
 }
 
+enum Section { none, bss, tbss, data, tdata };
+enum Section current_section = 0;
+
+static void emit_section(enum Section s) {
+  if (s == current_section) return;
+  switch (s) {
+    case data:  println("\n  .data"); break;
+    case tdata: println("\n  .section .tdata,\"awT\",@progbits"); break;
+    case tbss:  println("\n  .section .tbss,\"awT\",@nobits"); break;
+    case bss:   println("\n  .bss"); break;
+    default:    abort();
+  }
+  current_section = s;
+}
+
 static void emit_data(Obj *prog) {
   for (Obj *var = prog; var; var = var->next) {
     if (var->is_function || !var->is_definition)
@@ -1396,11 +1411,7 @@ static void emit_data(Obj *prog) {
 
     // .data or .tdata
     if (var->init_data) {
-      if (var->is_tls)
-        println("  .section .tdata,\"awT\",@progbits");
-      else
-        println("  .data");
-
+      emit_section(var->is_tls ? tdata : data);
       println("  .type %s, @object", var->name);
       println("  .size %s, %d", var->name, var->ty->size);
       if (align > 1) println("  .align %d", align);
@@ -1444,11 +1455,7 @@ static void emit_data(Obj *prog) {
     }
 
     // .bss or .tbss
-    if (var->is_tls)
-      println("  .section .tbss,\"awT\",@nobits");
-    else
-      println("  .bss");
-
+    emit_section(var->is_tls ? tbss : bss);
     if (align > 1) println("  .align %d", align);
     println("%s:", var->name);
     println("  .zero %d", var->ty->size);
@@ -1491,6 +1498,8 @@ static void store_gp(int r, int offset, int sz) {
 }
 
 static void emit_text(Obj *prog) {
+  println("\n  .text");
+
   for (Obj *fn = prog; fn; fn = fn->next) {
     if (!fn->is_function || !fn->is_definition)
       continue;
@@ -1505,7 +1514,6 @@ static void emit_text(Obj *prog) {
     else
       println("  .globl %s", fn->name);
 
-    println("  .text");
     println("  .type %s, @function", fn->name);
     println("%s:", fn->name);
     current_fn = fn;
@@ -1613,8 +1621,9 @@ void codegen(Obj *prog, FILE *out) {
     println("  .file %d \"%s\"", files[i]->file_no, files[i]->name);
 
   assign_lvar_offsets(prog);
+
   emit_data(prog);
   emit_text(prog);
 
-  println("  .section \".note.GNU-stack\",\"\",@progbits");
+  println("\n  .section \".note.GNU-stack\",\"\",@progbits");
 }
