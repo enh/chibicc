@@ -1375,21 +1375,6 @@ static void assign_lvar_offsets(Obj *prog) {
   }
 }
 
-enum Section { none, bss, tbss, data, tdata };
-static enum Section current_section = 0;
-
-static void emit_section(enum Section s) {
-  if (s == current_section) return;
-  switch (s) {
-    case data:  println("  .data"); break;
-    case tdata: println("  .section .tdata,\"awT\",@progbits"); break;
-    case tbss:  println("  .section .tbss,\"awT\",@nobits"); break;
-    case bss:   println("  .bss"); break;
-    default:    unreachable();
-  }
-  current_section = s;
-}
-
 static void emit_data(Obj *prog) {
   for (Obj *var = prog; var; var = var->next) {
     if (var->is_function || !var->is_definition)
@@ -1408,7 +1393,11 @@ static void emit_data(Obj *prog) {
 
     // .data or .tdata
     if (var->init_data) {
-      emit_section(var->is_tls ? tdata : data);
+      if (var->is_tls) {
+        println("  .section .tdata,\"awT\",@progbits");
+      } else {
+        println("  .section .data,\"aw\",@progbits");
+      }
       println("  .type %s, @object", var->name);
       if (align > 1) println("  .balign %d", align);
       println("%s:", var->name);
@@ -1452,7 +1441,11 @@ static void emit_data(Obj *prog) {
     }
 
     // .bss or .tbss
-    emit_section(var->is_tls ? tbss : bss);
+    if (var->is_tls) {
+      println("  .section .tbss,\"awT\",@nobits");
+    } else {
+      println("  .section .bss,\"aw\",@nobits");
+    }
     if (align > 1) println("  .balign %d", align);
     println("%s:", var->name);
     println("  .zero %d", var->ty->size);
@@ -1495,8 +1488,6 @@ static void store_gp(int r, int offset, int sz) {
 }
 
 static void emit_text(Obj *prog) {
-  println("\n  .text");
-
   for (Obj *fn = prog; fn; fn = fn->next) {
     if (!fn->is_function || !fn->is_definition)
       continue;
@@ -1506,7 +1497,8 @@ static void emit_text(Obj *prog) {
     if (!fn->is_live)
       continue;
 
-    println("\n  .%s %s", fn->is_static ? "local" : "global", fn->name);
+    println("\n  .section .text,\"ax\",@progbits");
+    println("  .%s %s", fn->is_static ? "local" : "global", fn->name);
     println("  .type %s, @function", fn->name);
     println("%s:", fn->name);
     current_fn = fn;
