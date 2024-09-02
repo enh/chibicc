@@ -67,7 +67,7 @@ uint32_t decode_utf8(char **new_pos, char *p) {
   return c;
 }
 
-static bool in_range(uint32_t *range, uint32_t c) {
+static bool in_range(const uint32_t *range, uint32_t c) {
   for (int i = 0; range[i] != -1; i += 2)
     if (range[i] <= c && c <= range[i + 1])
       return true;
@@ -92,7 +92,7 @@ bool is_ident1(uint32_t c) {
            c == '$';
   }
 
-  static uint32_t range[] = {
+  static const uint32_t range[] = {
     0x00A8, 0x00A8, 0x00AA, 0x00AA, 0x00AD, 0x00AD, 0x00AF, 0x00AF,
     0x00B2, 0x00B5, 0x00B7, 0x00BA, 0x00BC, 0x00BE, 0x00C0, 0x00D6,
     0x00D8, 0x00F6, 0x00F8, 0x00FF, 0x0100, 0x02FF, 0x0370, 0x167F,
@@ -122,7 +122,7 @@ bool is_ident2(uint32_t c) {
            c == '$';
   }
 
-  static uint32_t range[] = {
+  static const uint32_t range[] = {
     0x0300, 0x036F, 0x1DC0, 0x1DFF, 0x20D0, 0x20FF, 0xFE20, 0xFE2F, -1,
   };
 
@@ -134,7 +134,7 @@ bool is_ident2(uint32_t c) {
 //
 // Based on https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
 static int char_width(uint32_t c) {
-  static uint32_t range1[] = {
+  static const uint32_t range1[] = {
     0x0000, 0x001F, 0x007f, 0x00a0, 0x0300, 0x036F, 0x0483, 0x0486,
     0x0488, 0x0489, 0x0591, 0x05BD, 0x05BF, 0x05BF, 0x05C1, 0x05C2,
     0x05C4, 0x05C5, 0x05C7, 0x05C7, 0x0600, 0x0603, 0x0610, 0x0615,
@@ -177,7 +177,7 @@ static int char_width(uint32_t c) {
   if (in_range(range1, c))
     return 0;
 
-  static uint32_t range2[] = {
+  static const uint32_t range2[] = {
     0x1100, 0x115F, 0x2329, 0x2329, 0x232A, 0x232A, 0x2E80, 0x303E,
     0x3040, 0xA4CF, 0xAC00, 0xD7A3, 0xF900, 0xFAFF, 0xFE10, 0xFE19,
     0xFE30, 0xFE6F, 0xFF00, 0xFF60, 0xFFE0, 0xFFE6, 0x1F000, 0x1F644,
