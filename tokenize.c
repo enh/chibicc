@@ -690,7 +690,6 @@ File *new_file(char *name, int file_no, char *contents) {
 // Replaces \r or \r\n with \n.
 static void canonicalize_newline(char *p) {
   int i = 0, j = 0;
-
   while (p[i]) {
     if (p[i] == '\r' && p[i + 1] == '\n') {
       i += 2;
@@ -708,6 +707,9 @@ static void canonicalize_newline(char *p) {
 
 // Removes backslashes followed by a newline.
 static void remove_backslash_newline(char *p) {
+  // Fast path: there probably aren't any.
+  if (!strstr(p, "\\\n")) return;
+
   int i = 0, j = 0;
 
   // We want to keep the number of newline characters so that
