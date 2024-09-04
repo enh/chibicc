@@ -1,5 +1,5 @@
 * more readable -S
-  * use .short/.long/.quad when appropriate
+  * -ffunction-sections and -fdata-sections (always on)
 * use .rodata
 * .ident?
 * c language features

@@ -1402,7 +1402,6 @@ static void emit_data(Obj *prog) {
       if (align > 1) println("  .balign %d", align);
       println("%s:", var->name);
 
-      Relocation *rel = var->rel;
       if (var->init_data_is_string_literal) {
         fprintf(output_file, "  .ascii \"");
         for (int i = 0; i < var->ty->size; i++) {
@@ -1425,6 +1424,9 @@ static void emit_data(Obj *prog) {
         }
         fprintf(output_file, "\"\n");
       } else {
+        Relocation *rel = var->rel;
+        // TODO: do better with arrays of structs etc
+        int unit_size = (var->ty->kind == TY_ARRAY) ? var->ty->base->size : var->ty->size;
         int pos = 0;
         while (pos < var->ty->size) {
           if (rel && rel->offset == pos) {
@@ -1432,7 +1434,23 @@ static void emit_data(Obj *prog) {
             rel = rel->next;
             pos += 8;
           } else {
-            println("  .byte %d", var->init_data[pos++]);
+            if (unit_size == 8) {
+              long v = *(long*) &var->init_data[pos];
+              println("  .quad %ld  # %#lx", v, v);
+              pos += 8;
+            } else if (unit_size == 4) {
+              int v = *(int*) &var->init_data[pos];
+              println("  .long %d  # %#x", v, v);
+              pos += 4;
+            } else if (unit_size == 2) {
+              int v = *(short*) &var->init_data[pos] & 0xffff;
+              println("  .short %d  # %#x", v, v);
+              pos += 2;
+            } else {
+              int v = var->init_data[pos] & 0xff;
+              println("  .byte %d  # %#x", v, v);
+              pos += 1;
+            }
           }
         }
       }
