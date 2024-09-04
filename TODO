@@ -35,7 +35,6 @@
   * constant propagation
   * register allocation rather than stack-based
 * compile-time performance
-  * optimize convert_universal_chars()
   * does detect_include_guard() pull its weight?
 * why does md2.o end up in the top-level directory?
 * add arm64 backend

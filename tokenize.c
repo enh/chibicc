@@ -689,6 +689,9 @@ File *new_file(char *name, int file_no, char *contents) {
 
 // Replaces \r or \r\n with \n.
 static void canonicalize_newline(char *p) {
+  // Fast path: there probably aren't any.
+  if (!strchr(p, '\r')) return;
+
   int i = 0, j = 0;
   while (p[i]) {
     if (p[i] == '\r' && p[i + 1] == '\n') {
@@ -750,25 +753,27 @@ static void convert_universal_chars(char *p) {
   char *q = p;
 
   while (*p) {
-    if (startswith(p, "\\u")) {
-      uint32_t c = read_universal_char(p + 2, 4);
-      if (c) {
-        p += 6;
-        q += encode_utf8(q, c);
+    if (*p == '\\') {
+      if (*(p+1) == 'u') {
+        uint32_t c = read_universal_char(p + 2, 4);
+        if (c) {
+          p += 6;
+          q += encode_utf8(q, c);
+        } else {
+          *q++ = *p++;
+        }
+      } else if (*(p+1) == 'U') {
+        uint32_t c = read_universal_char(p + 2, 8);
+        if (c) {
+          p += 10;
+          q += encode_utf8(q, c);
+        } else {
+          *q++ = *p++;
+        }
       } else {
         *q++ = *p++;
-      }
-    } else if (startswith(p, "\\U")) {
-      uint32_t c = read_universal_char(p + 2, 8);
-      if (c) {
-        p += 10;
-        q += encode_utf8(q, c);
-      } else {
         *q++ = *p++;
       }
-    } else if (p[0] == '\\') {
-      *q++ = *p++;
-      *q++ = *p++;
     } else {
       *q++ = *p++;
     }
