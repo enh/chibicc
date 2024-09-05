@@ -142,17 +142,49 @@ static int from_hex(char c) {
 
 // Read a punctuator token from p and returns its length.
 static int read_punct(char *p) {
-  static char *kw[] = {
-    "<<=", ">>=", "...", "==", "!=", "<=", ">=", "->", "+=",
-    "-=", "*=", "/=", "++", "--", "%=", "&=", "|=", "^=", "&&",
-    "||", "<<", ">>", "##",
-  };
-
-  for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++)
-    if (startswith(p, kw[i]))
-      return strlen(kw[i]);
-
-  return ispunct(*p) ? 1 : 0;
+  char c1;
+  switch (*p) {
+    case '<': // < <= << <<=
+      c1 = *(p+1);
+      if (c1 == '=') return 2;
+      else if (c1 == '<') {
+        if (*(p+2) == '=') return 3;
+        return 2;
+      }
+      return 1;
+    case '>': // > >= >> >>=
+      c1 = *(p+1);
+      if (c1 == '=') return 2;
+      else if (c1 == '>') {
+        if (*(p+2) == '=') return 3;
+        return 2;
+      }
+      return 1;
+    case '+': // + ++ +=
+      c1 = *(p+1);
+      return (c1 == '+' || c1 == '=') ? 2 : 1;
+    case '-': // - -- -= ->
+      c1 = *(p+1);
+      return (c1 == '-' || c1 == '=' || c1 == '>') ? 2 : 1;
+    case '&': // & &= &&
+      c1 = *(p+1);
+      return (c1 == '=' || c1 == '&') ? 2 : 1;
+    case '|': // | |= ||
+      c1 = *(p+1);
+      return (c1 == '=' || c1 == '|') ? 2 : 1;
+    case '.': // . ...
+      return (*(p+1) == '.' && *(p+2) == '.') ? 3 : 1;
+    case '=': // = ==
+    case '!': // ! !=
+    case '*': // * *=
+    case '/': // / /=
+    case '%': // % %=
+    case '^': // ^ ^=
+      return *(p+1) == '=' ? 2 : 1;
+    case '#': // # ##
+      return *(p+1) == '#' ? 2 : 1;
+    }
+    return ispunct(*p) ? 1 : 0;
 }
 
 static bool is_keyword(Token *tok) {
