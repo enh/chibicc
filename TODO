@@ -36,7 +36,6 @@
   * register allocation rather than stack-based
 * compile-time performance
   * #define isident1() etc
-  * #define startswith2()?
   * does detect_include_guard() pull its weight?
 * why does md2.o end up in the top-level directory?
 * add arm64 backend
