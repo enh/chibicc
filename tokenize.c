@@ -722,7 +722,7 @@ File *new_file(char *name, int file_no, char *contents) {
 }
 
 // Replaces \r or \r\n with \n.
-static void canonicalize_newline(char *p) {
+static void canonicalize_newlines(char *p) {
   // Fast path: there probably aren't any.
   if (!strchr(p, '\r')) return;
 
@@ -743,7 +743,7 @@ static void canonicalize_newline(char *p) {
 }
 
 // Removes backslashes followed by a newline.
-static void remove_backslash_newline(char *p) {
+static void remove_backslash_newlines(char *p) {
   // Fast path: there probably aren't any.
   if (!strstr(p, "\\\n")) return;
 
@@ -751,7 +751,8 @@ static void remove_backslash_newline(char *p) {
 
   // We want to keep the number of newline characters so that
   // the logical line number matches the physical one.
-  // This counter maintain the number of newlines we have removed.
+  // This counts the number of backslash-newlines we have removed.
+  // Every unescaped newline, we flush that number of newlines.
   int n = 0;
 
   while (p[i]) {
@@ -760,15 +761,16 @@ static void remove_backslash_newline(char *p) {
       n++;
     } else if (p[i] == '\n') {
       p[j++] = p[i++];
-      for (; n > 0; n--)
-        p[j++] = '\n';
+      for (; n > 0; n--) p[j++] = '\n';
     } else {
       p[j++] = p[i++];
     }
   }
 
-  for (; n > 0; n--)
-    p[j++] = '\n';
+  // read_file() guarantees there's a final newline,
+  // but it doesn't guarantee there wasn't a backslash before it.
+  // TODO: that's probably a bug in read_file() ... consequences?
+  for (; n > 0; n--) p[j++] = '\n';
   p[j] = '\0';
 }
 
@@ -818,18 +820,16 @@ static void convert_universal_chars(char *p) {
 
 Token *tokenize_file(char *path) {
   char *p = read_file(path);
-  if (!p)
-    return NULL;
+  if (!p) return NULL;
 
   // UTF-8 texts may start with a 3-byte "BOM" marker sequence.
   // If exists, just skip them because they are useless bytes.
   // (It is actually not recommended to add BOM markers to UTF-8
   // texts, but it's not uncommon particularly on Windows.)
-  if (!memcmp(p, "\xef\xbb\xbf", 3))
-    p += 3;
+  if (!memcmp(p, "\xef\xbb\xbf", 3)) p += 3;
 
-  canonicalize_newline(p);
-  remove_backslash_newline(p);
+  canonicalize_newlines(p);
+  remove_backslash_newlines(p);
   convert_universal_chars(p);
 
   // Save the filename for assembler .file directive.
@@ -838,9 +838,8 @@ Token *tokenize_file(char *path) {
 
   // Save the filename for assembler .file directive.
   input_files = realloc(input_files, sizeof(char *) * (file_no + 2));
-  input_files[file_no] = file;
-  input_files[file_no + 1] = NULL;
-  file_no++;
+  input_files[file_no++] = file;
+  input_files[file_no] = NULL;
 
   return tokenize(file);
 }
