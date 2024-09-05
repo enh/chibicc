@@ -393,23 +393,23 @@ static bool convert_pp_int(Token *tok) {
   // Read U, L or LL suffixes.
   bool l = false;
   bool u = false;
-
   if (startswith3(p, 'L', 'L', 'U') || startswith3(p, 'L', 'L', 'u') ||
       startswith3(p, 'l', 'l', 'U') || startswith3(p, 'l', 'l', 'u') ||
       startswith3(p, 'U', 'L', 'L') || startswith3(p, 'U', 'l', 'l') ||
       startswith3(p, 'u', 'L', 'L') || startswith3(p, 'u', 'l', 'l')) {
     p += 3;
     l = u = true;
-  } else if (!strncasecmp(p, "lu", 2) || !strncasecmp(p, "ul", 2)) {
+  } else if ((tolower(*p) == 'u' && tolower(*(p+1)) == 'l') ||
+             (tolower(*p) == 'l' && tolower(*(p+1)) == 'u')) {
     p += 2;
     l = u = true;
   } else if (startswith2(p, 'L', 'L') || startswith2(p, 'l', 'l')) {
     p += 2;
     l = true;
-  } else if (*p == 'L' || *p == 'l') {
+  } else if (tolower(*p) == 'l') {
     p++;
     l = true;
-  } else if (*p == 'U' || *p == 'u') {
+  } else if (tolower(*p) == 'u') {
     p++;
     u = true;
   }
