@@ -147,7 +147,7 @@ static int read_punct(char *p) {
     case '<': // < <= << <<=
       c1 = *(p+1);
       if (c1 == '=') return 2;
-      else if (c1 == '<') {
+      if (c1 == '<') {
         if (*(p+2) == '=') return 3;
         return 2;
       }
@@ -155,7 +155,7 @@ static int read_punct(char *p) {
     case '>': // > >= >> >>=
       c1 = *(p+1);
       if (c1 == '=') return 2;
-      else if (c1 == '>') {
+      if (c1 == '>') {
         if (*(p+2) == '=') return 3;
         return 2;
       }
