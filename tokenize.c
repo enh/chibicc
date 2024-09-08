@@ -744,10 +744,13 @@ static void canonicalize_newlines(char *p) {
 
 // Removes backslashes followed by a newline.
 static void remove_backslash_newlines(char *p) {
-  // Fast path: there probably aren't any.
-  if (!strstr(p, "\\\n")) return;
+  // Fast path: escaped newlines only occur in multiline macros,
+  // and most files won't have any of those.
+  char *first = strstr(p, "\\\n");
+  if (!first) return;
 
-  int i = 0, j = 0;
+  // We only need to rewrite the input from that point.
+  int i = (first - p), j = i;
 
   // We want to keep the number of newline characters so that
   // the logical line number matches the physical one.
@@ -770,6 +773,7 @@ static void remove_backslash_newlines(char *p) {
   // read_file() guarantees there's a final newline,
   // but it doesn't guarantee there wasn't a backslash before it.
   // TODO: that's probably a bug in read_file() ... consequences?
+  // TODO: add test, remove this, fix read_file()
   for (; n > 0; n--) p[j++] = '\n';
   p[j] = '\0';
 }
