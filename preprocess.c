@@ -1037,7 +1037,7 @@ void init_macros(void) {
   define_macro("__SIZEOF_DOUBLE__", "8");
   define_macro("__SIZEOF_FLOAT__", "4");
   define_macro("__SIZEOF_INT__", "4");
-  define_macro("__SIZEOF_LONG_DOUBLE__", "8");
+  define_macro("__SIZEOF_LONG_DOUBLE__", "16");
   define_macro("__SIZEOF_LONG_LONG__", "8");
   define_macro("__SIZEOF_LONG__", "8");
   define_macro("__SIZEOF_POINTER__", "8");

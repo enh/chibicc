@@ -42,6 +42,7 @@ int main() {
   ASSERT(1, sizeof(unsigned char));
   ASSERT(1, sizeof(unsigned char unsigned));
 
+  ASSERT(2, __SIZEOF_SHORT__);
   ASSERT(2, sizeof(short));
   ASSERT(2, sizeof(int short));
   ASSERT(2, sizeof(short int));
@@ -50,6 +51,7 @@ int main() {
   ASSERT(2, sizeof(unsigned short));
   ASSERT(2, sizeof(int short unsigned));
 
+  ASSERT(4, __SIZEOF_INT__);
   ASSERT(4, sizeof(int));
   ASSERT(4, sizeof(signed int));
   ASSERT(4, sizeof(signed));
@@ -58,17 +60,22 @@ int main() {
   ASSERT(4, sizeof(unsigned));
   ASSERT(4, sizeof(unsigned unsigned));
 
+  ASSERT(8, __SIZEOF_LONG__);
   ASSERT(8, sizeof(long));
   ASSERT(8, sizeof(signed long));
   ASSERT(8, sizeof(signed long int));
   ASSERT(8, sizeof(unsigned long));
   ASSERT(8, sizeof(unsigned long int));
 
+  ASSERT(8, __SIZEOF_LONG_LONG__);
   ASSERT(8, sizeof(long long));
   ASSERT(8, sizeof(signed long long));
   ASSERT(8, sizeof(signed long long int));
   ASSERT(8, sizeof(unsigned long long));
   ASSERT(8, sizeof(unsigned long long int));
+
+  ASSERT(8, __SIZEOF_POINTER__);
+  ASSERT(8, sizeof(void*));
 
   ASSERT(1, sizeof((char)1));
   ASSERT(2, sizeof((short)1));
@@ -84,7 +91,9 @@ int main() {
   ASSERT(1, sizeof(char) << 31 >> 31);
   ASSERT(1, sizeof(char) << 63 >> 63);
 
+  ASSERT(4, __SIZEOF_FLOAT__);
   ASSERT(4, sizeof(float));
+  ASSERT(8, __SIZEOF_DOUBLE__);
   ASSERT(8, sizeof(double));
 
   ASSERT(4, sizeof(1f+2));
@@ -96,6 +105,7 @@ int main() {
   ASSERT(4, sizeof(1f/2));
   ASSERT(8, sizeof(1.0/2));
 
+  ASSERT(16, __SIZEOF_LONG_DOUBLE__);
   ASSERT(16, sizeof(long double));
 
   ASSERT(1, sizeof(main));
