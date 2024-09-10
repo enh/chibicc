@@ -182,8 +182,24 @@ static int read_punct(char *p) {
       return *(p+1) == '=' ? 2 : 1;
     case '#': // # ##
       return *(p+1) == '#' ? 2 : 1;
+    case '$':
+    case '(':
+    case ')':
+    case ',':
+    case ':':
+    case ';':
+    case '?':
+    case '@':
+    case '[':
+    case ']':
+    case '_':
+    case '`':
+    case '{':
+    case '}':
+    case '~':
+      return 1;
     }
-    return ispunct(*p) ? 1 : 0;
+    return 0;
 }
 
 static bool is_keyword(Token *tok) {
