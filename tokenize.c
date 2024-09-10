@@ -790,8 +790,11 @@ static uint32_t read_universal_char(char *p, int len) {
 
 // Replace \u or \U escape sequences with corresponding UTF-8 bytes.
 static void convert_universal_chars(char *p) {
-  char *q = p;
+  // Find the first \u or \U, if any.
+  while (*p && !(*p == '\\' && tolower(*(p+1)) == 'u')) p++;
+  if (!*p) return;
 
+  char *q = p;
   while (*p) {
     if (*p == '\\') {
       if (*(p+1) == 'u') {
