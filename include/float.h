@@ -1,5 +1,4 @@
-#ifndef __STDFLOAT_H
-#define __STDFLOAT_H
+#pragma once
 
 #define DECIMAL_DIG 21
 #define FLT_EVAL_METHOD 0 // C11 5.2.4.2.2p9
@@ -38,5 +37,3 @@
 #define LDBL_MIN_10_EXP -307
 #define LDBL_MIN_EXP -1021
 #define LDBL_TRUE_MIN 0x0.0000000000001p-1022
-
-#endif

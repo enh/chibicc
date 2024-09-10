@@ -1,5 +1,4 @@
-#ifndef __STDARG_H
-#define __STDARG_H
+#pragma once
 
 typedef struct {
   unsigned int gp_offset;
@@ -53,5 +52,3 @@ static void *__va_arg_fp(__va_elem *ap, int sz, int align) {
 
 #define __GNUC_VA_LIST 1
 typedef va_list __gnuc_va_list;
-
-#endif

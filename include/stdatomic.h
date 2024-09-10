@@ -1,5 +1,4 @@
-#ifndef __STDATOMIC_H
-#define __STDATOMIC_H
+#pragma once
 
 #define ATOMIC_BOOL_LOCK_FREE 1
 #define ATOMIC_CHAR_LOCK_FREE 1
@@ -98,5 +97,3 @@ typedef _Atomic unsigned long atomic_size_t;
 typedef _Atomic long atomic_ptrdiff_t;
 typedef _Atomic long atomic_intmax_t;
 typedef _Atomic unsigned long atomic_uintmax_t;
-
-#endif
