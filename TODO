@@ -2,7 +2,7 @@
   * -ffunction-sections and -fdata-sections (always on)
 * use .rodata
 * .ident?
-* c language features
+* c23 language features
   * unnamed arguments in function definitions
   * zero initialization with {}
   * single-argument static_assert
@@ -28,16 +28,32 @@
   * constexpr
   * typeof()
   * ' digit separator for literals
+* c extensions
+  * __attribute__((format))
+  * __builtin_*() for <math.h>
 * fix toybox build
   * _N() macro in kconfig
   * can't parse (and bad error message from) <regex.h>
 * generated code performance
   * constant propagation (parse.c already has eval()...)
   * register allocation rather than stack-based
+  * when should ND_MEMZERO switch over to rep stos? should we unroll more movs?
+  * recognize when a variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
 * compile-time performance
+  * custom inline ctype
   * #define isident1() etc
-  * does detect_include_guard() pull its weight?
+  * is a bump-pointer mmap() allocator faster? [no need to memset either...]
+  * finer-grained token types (no string comparisons for { or +=)?
+  * interning?
+  * does the whole read_file()+remove_backslash_newlines()+convert_universal_chars() dance make sense, or should we have one pass using fgetc() instead?
 * why does md2.o end up in the top-level directory?
+* does asan find any bugs?
 * add arm64 backend
 * add riscv64 backend
+* make long double == double for all architectures?
 * macOS support?
+* chibi-libc
+  * just what chibicc needs
+  * everything in ISO C
+* chibi-as
+* chibi-ld
