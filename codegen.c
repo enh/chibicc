@@ -813,9 +813,10 @@ static void gen_expr(Node *node) {
     gen_expr(node->lhs);
     cast(node->lhs->ty, node->ty);
     return;
-  case ND_MEMZERO:
-    if (node->var->ty->size <= 8) {
-      println("  mov%c $0, %d(%%rbp)", "bw l   q"[node->var->ty->size], node->var->offset);
+  case ND_MEMZERO: {
+    int size = node->var->ty->size;
+    if (size == 1 || size == 2 || size == 4 || size == 8) {
+      println("  mov%c $0, %d(%%rbp)", "-bw-l---q"[size], node->var->offset);
     } else {
       // `rep stosb` is equivalent to `memset(%rdi, %al, %rcx)`.
       println("  mov $%d, %%rcx", node->var->ty->size);
@@ -824,6 +825,7 @@ static void gen_expr(Node *node) {
       println("  rep stosb");
     }
     return;
+  }
   case ND_COND: {
     int c = count();
     gen_expr(node->cond);
