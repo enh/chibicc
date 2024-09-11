@@ -814,11 +814,15 @@ static void gen_expr(Node *node) {
     cast(node->lhs->ty, node->ty);
     return;
   case ND_MEMZERO:
-    // `rep stosb` is equivalent to `memset(%rdi, %al, %rcx)`.
-    println("  mov $%d, %%rcx", node->var->ty->size);
-    println("  lea %d(%%rbp), %%rdi", node->var->offset);
-    println("  mov $0, %%al");
-    println("  rep stosb");
+    if (node->var->ty->size <= 8) {
+      println("  mov%c $0, %d(%%rbp)", "bw l   q"[node->var->ty->size], node->var->offset);
+    } else {
+      // `rep stosb` is equivalent to `memset(%rdi, %al, %rcx)`.
+      println("  mov $%d, %%rcx", node->var->ty->size);
+      println("  lea %d(%%rbp), %%rdi", node->var->offset);
+      println("  mov $0, %%al");
+      println("  rep stosb");
+    }
     return;
   case ND_COND: {
     int c = count();
