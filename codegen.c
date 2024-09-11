@@ -208,21 +208,20 @@ static void load(Type *ty) {
     return;
   }
 
-  char *insn = ty->is_unsigned ? "movz" : "movs";
-
   // When we load a char or a short value to a register, we always
   // extend them to the size of int, so we can assume the lower half of
   // a register always contains a valid value. The upper half of a
   // register for char, short and int may contain garbage. When we load
   // a long value to a register, it simply occupies the entire register.
-  if (ty->size == 1)
-    println("  %sbl (%%rax), %%eax", insn);
-  else if (ty->size == 2)
-    println("  %swl (%%rax), %%eax", insn);
-  else if (ty->size == 4)
+  if (ty->size == 1) {
+    println("  mov%cbl (%%rax), %%eax", ty->is_unsigned ? 'z' : 's');
+  } else if (ty->size == 2) {
+    println("  mov%cwl (%%rax), %%eax", ty->is_unsigned ? 'z' : 's');
+  } else if (ty->size == 4) {
     println("  movsxd (%%rax), %%rax");
-  else
+  } else {
     println("  mov (%%rax), %%rax");
+  }
 }
 
 // Store %rax to an address that the stack top is pointing to.
