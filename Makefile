@@ -11,7 +11,7 @@ TESTS=$(TEST_SRCS:.c=.exe)
 chibicc: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(OBJS): chibicc.h
+$(OBJS): chibicc.h Makefile
 
 test/%.exe: chibicc test/%.c
 	./chibicc -Iinclude -Itest -c -o test/$*.o test/$*.c
@@ -21,7 +21,7 @@ test: $(TESTS)
 	for i in $^; do echo $$i; ./$$i || exit 1; echo; done
 	test/driver.sh ./chibicc
 
-test-all: test test-stage2
+all: test test-stage2
 
 # Stage 2
 
@@ -47,4 +47,4 @@ clean:
 	rm -rf chibicc tmp* $(TESTS) test/*.s test/*.exe stage2
 	find * -type f '(' -name '*~' -o -name '*.o' ')' -exec rm {} ';'
 
-.PHONY: test clean test-stage2
+.PHONY: all clean test test-stage2
