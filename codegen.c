@@ -757,10 +757,7 @@ static void gen_expr(Node *node) {
     Member *mem = node->member;
     if (mem->is_bitfield) {
       println("  shl $%d, %%rax", 64 - mem->bit_width - mem->bit_offset);
-      if (mem->ty->is_unsigned)
-        println("  shr $%d, %%rax", 64 - mem->bit_width);
-      else
-        println("  sar $%d, %%rax", 64 - mem->bit_width);
+      println("  %s $%d, %%rax", mem->ty->is_unsigned ? "shr" : "sar", 64 - mem->bit_width);
     }
     return;
   }
