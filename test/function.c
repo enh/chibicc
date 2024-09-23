@@ -95,6 +95,7 @@ char *fmt(char *buf, char *fmt, ...) {
   va_list ap;
   *ap = *(__va_elem *)__va_area__;
   vsprintf(buf, fmt, ap);
+  return buf;
 }
 
 double add_double(double x, double y);
