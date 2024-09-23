@@ -687,9 +687,19 @@ static void builtin_alloca(void) {
   println("  mov %%rax, %d(%%rbp)", current_fn->alloca_bottom->offset);
 }
 
+static void gen_loc(Node *node) {
+  static int last_file = -1;
+  static int last_line = -1;
+  if (node->tok->file->file_no != last_file || node->tok->line_no != last_line) {
+    println("  .loc %d %d", node->tok->file->file_no, node->tok->line_no);
+    last_file = node->tok->file->file_no;
+    last_line = node->tok->line_no;
+  }
+}
+
 // Generate code for a given node.
 static void gen_expr(Node *node) {
-  println("  .loc %d %d", node->tok->file->file_no, node->tok->line_no);
+  gen_loc(node);
 
   switch (node->kind) {
   case ND_NULL_EXPR:
@@ -1187,7 +1197,7 @@ static void gen_expr(Node *node) {
 }
 
 static void gen_stmt(Node *node) {
-  println("  .loc %d %d", node->tok->file->file_no, node->tok->line_no);
+  gen_loc(node);
 
   switch (node->kind) {
   case ND_IF: {
