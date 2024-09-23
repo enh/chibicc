@@ -34,11 +34,17 @@
 * fix toybox build
   * _N() macro in kconfig
   * can't parse (and bad error message from) <regex.h>
-* generated code performance
+* generated code quality
   * constant propagation (parse.c already has eval()...)
   * register allocation rather than stack-based
   * when should ND_MEMZERO switch over to rep stos? should we unroll more movs?
   * recognize when a variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
+  * new_add() uses multiplication rather than shifts
+  * new_add() multiplies by one for bytes
+  * general power-of-two multiplication/division to shift conversation
+  * general simplification of add/sub/mul of 0/1
+  * simplification of i++ to ++i in for statements
+  * general simplification of i++ to ++i
 * compile-time performance
   * custom inline ctype
   * #define isident1() etc
@@ -46,6 +52,10 @@
   * finer-grained token types (no string comparisons for { or +=)?
   * interning?
   * does the whole read_file()+remove_backslash_newlines()+convert_universal_chars() dance make sense, or should we have one pass using fgetc() instead?
+* diagnostics
+  * at least all the diagnostics that ken's plan9 cc emitted
+  * diagnostic for running off the end of a non-void function
+  * only errors, no warnings, like java?
 * why does md2.o end up in the top-level directory?
 * does asan find any bugs?
 * add arm64 backend
@@ -55,5 +65,6 @@
 * chibi-libc
   * just what chibicc needs
   * everything in ISO C
+  * everything toybox needs
 * chibi-as
 * chibi-ld
