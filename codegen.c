@@ -1533,6 +1533,7 @@ static void emit_text(Obj *prog) {
     current_fn = fn;
 
     // Prologue
+    gen_loc(fn->body);
     println("  push %%rbp");
     println("  mov %%rsp, %%rbp");
     println("  sub $%d, %%rsp", fn->stack_size);
