@@ -516,18 +516,16 @@ void convert_pp_tokens(Token *tok) {
 
 // Initialize line info for all tokens.
 static void add_line_numbers(Token *tok) {
-  char *p = current_file->contents;
-  int n = 1;
-
-  do {
+  int line_no = 1;
+  for (char *p = current_file->contents; *p; ++p) {
     if (p == tok->loc) {
-      tok->line_no = n;
+      tok->line_no = line_no;
       tok = tok->next;
     }
     if (*p == '\n') {
-      ++n;
+      ++line_no;
     }
-  } while (*p++);
+  }
 }
 
 Token *tokenize_string_literal(Token *tok, Type *basety) {
