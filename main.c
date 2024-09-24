@@ -44,9 +44,11 @@ static bool take_arg(char *arg) {
     "-o", "-I", "-idirafter", "-include", "-x", "-MF", "-MT", "-Xlinker",
   };
 
-  for (int i = 0; i < sizeof(x) / sizeof(*x); i++)
-    if (!strcmp(arg, x[i]))
+  for (int i = 0; i < sizeof(x) / sizeof(*x); ++i) {
+    if (!strcmp(arg, x[i])) {
       return true;
+    }
+  }
   return false;
 }
 
@@ -61,8 +63,9 @@ static void add_default_include_paths(char *argv0) {
   strarray_push(&include_paths, "/usr/include");
 
   // Keep a copy of the standard include paths for -MMD option.
-  for (int i = 0; i < include_paths.len; i++)
+  for (int i = 0; i < include_paths.len; ++i) {
     strarray_push(&std_include_paths, include_paths.data[i]);
+  }
 }
 
 static void define(char *str) {
@@ -86,7 +89,7 @@ static FileType parse_opt_x(char *s) {
 static char *quote_makefile(char *s) {
   char *buf = calloc(1, strlen(s) * 2 + 1);
 
-  for (int i = 0, j = 0; s[i]; i++) {
+  for (int i = 0, j = 0; s[i]; ++i) {
     switch (s[i]) {
     case '$':
       buf[j++] = '$';
@@ -114,14 +117,17 @@ static char *quote_makefile(char *s) {
 static void parse_args(int argc, char **argv) {
   // Make sure that all command line options that take an argument
   // have an argument.
-  for (int i = 1; i < argc; i++)
-    if (take_arg(argv[i]))
-      if (!argv[++i])
+  for (int i = 1; i < argc; ++i) {
+    if (take_arg(argv[i])) {
+      if (!argv[++i]) {
         usage(1);
+      }
+    }
+  }
 
   StringArray idirafter = {};
 
-  for (int i = 1; i < argc; i++) {
+  for (int i = 1; i < argc; ++i) {
     if (!strcmp(argv[i], "-###")) {
       opt_hash_hash_hash = true;
       continue;
@@ -336,7 +342,7 @@ static void parse_args(int argc, char **argv) {
     strarray_push(&input_paths, argv[i]);
   }
 
-  for (int i = 0; i < idirafter.len; i++)
+  for (int i = 0; i < idirafter.len; ++i)
     strarray_push(&include_paths, idirafter.data[i]);
 
   if (input_paths.len == 0)
@@ -373,7 +379,7 @@ static char *replace_extn(char *tmpl, char *extn) {
 }
 
 static void cleanup(void) {
-  for (int i = 0; i < tmpfiles.len; i++)
+  for (int i = 0; i < tmpfiles.len; ++i)
     unlink(tmpfiles.data[i]);
 }
 
@@ -392,7 +398,7 @@ static void run_subprocess(char **argv) {
   // If -### is given, dump the subprocess's command line.
   if (opt_hash_hash_hash) {
     fprintf(stderr, "%s", argv[0]);
-    for (int i = 1; argv[i]; i++)
+    for (int i = 1; argv[i]; ++i)
       fprintf(stderr, " %s", argv[i]);
     fprintf(stderr, "\n");
   }
@@ -440,13 +446,13 @@ static void print_tokens(Token *tok) {
     if (tok->has_space && !tok->at_bol)
       fprintf(out, " ");
     fprintf(out, "%.*s", tok->len, tok->loc);
-    line++;
+    ++line;
   }
   fprintf(out, "\n");
 }
 
 static bool in_std_include_path(char *path) {
-  for (int i = 0; i < std_include_paths.len; i++) {
+  for (int i = 0; i < std_include_paths.len; ++i) {
     char *dir = std_include_paths.data[i];
     int len = strlen(dir);
     if (strncmp(dir, path, len) == 0 && path[len] == '/')
@@ -477,7 +483,7 @@ static void print_dependencies(void) {
 
   File **files = get_input_files();
 
-  for (int i = 0; files[i]; i++) {
+  for (int i = 0; files[i]; ++i) {
     if (opt_MMD && in_std_include_path(files[i]->name))
       continue;
     fprintf(out, " \\\n  %s", files[i]->name);
@@ -486,7 +492,7 @@ static void print_dependencies(void) {
   fprintf(out, "\n\n");
 
   if (opt_MP) {
-    for (int i = 1; files[i]; i++) {
+    for (int i = 1; files[i]; ++i) {
       if (opt_MMD && in_std_include_path(files[i]->name))
         continue;
       fprintf(out, "%s:\n\n", quote_makefile(files[i]->name));
@@ -516,7 +522,7 @@ static void cc1(void) {
   Token *tok = NULL;
 
   // Process -include option
-  for (int i = 0; i < opt_include.len; i++) {
+  for (int i = 0; i < opt_include.len; ++i) {
     char *incl = opt_include.data[i];
 
     char *path;
@@ -603,7 +609,7 @@ static char *find_gcc_libpath(void) {
     "/usr/lib/gcc/x86_64-redhat-linux/*/crtbegin.o", // For Fedora
   };
 
-  for (int i = 0; i < sizeof(paths) / sizeof(*paths); i++) {
+  for (int i = 0; i < sizeof(paths) / sizeof(*paths); ++i) {
     char *path = find_file(paths[i]);
     if (path)
       return dirname(path);
@@ -648,11 +654,13 @@ static void run_linker(StringArray *inputs, char *output) {
     strarray_push(&arr, "/lib64/ld-linux-x86-64.so.2");
   }
 
-  for (int i = 0; i < ld_extra_args.len; i++)
+  for (int i = 0; i < ld_extra_args.len; ++i) {
     strarray_push(&arr, ld_extra_args.data[i]);
+  }
 
-  for (int i = 0; i < inputs->len; i++)
+  for (int i = 0; i < inputs->len; ++i) {
     strarray_push(&arr, inputs->data[i]);
+  }
 
   if (opt_static) {
     strarray_push(&arr, "--start-group");
@@ -713,7 +721,7 @@ int main(int argc, char **argv) {
 
   StringArray ld_args = {};
 
-  for (int i = 0; i < input_paths.len; i++) {
+  for (int i = 0; i < input_paths.len; ++i) {
     char *input = input_paths.data[i];
 
     if (!strncmp(input, "-l", 2)) {

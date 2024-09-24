@@ -30,24 +30,24 @@ static int count(void) {
 
 static void push(void) {
   println("  push %%rax");
-  depth++;
+  ++depth;
 }
 
 static void pop(const char *arg) {
   println("  pop %s", arg);
-  depth--;
+  --depth;
 }
 
 static void pushf(void) {
   println("  sub $8, %%rsp");
   println("  movsd %%xmm0, (%%rsp)");
-  depth++;
+  ++depth;
 }
 
 static void popf(int reg) {
   println("  movsd (%%rsp), %%xmm%d", reg);
   println("  add $8, %%rsp");
-  depth--;
+  --depth;
 }
 
 // Round up `n` to the nearest multiple of `align`. For instance,
@@ -231,7 +231,7 @@ static void store(Type *ty) {
   switch (ty->kind) {
   case TY_STRUCT:
   case TY_UNION:
-    for (int i = 0; i < ty->size; i++) {
+    for (int i = 0; i < ty->size; ++i) {
       println("  mov %d(%%rax), %%r8b", i);
       println("  mov %%r8b, %d(%%rdi)", i);
     }
@@ -424,7 +424,7 @@ static bool has_flonum(Type *ty, int lo, int hi, int offset) {
   }
 
   if (ty->kind == TY_ARRAY) {
-    for (int i = 0; i < ty->array_len; i++)
+    for (int i = 0; i < ty->array_len; ++i)
       if (!has_flonum(ty->base, lo, hi, offset + ty->base->size * i))
         return false;
     return true;
@@ -446,7 +446,7 @@ static void push_struct(Type *ty) {
   println("  sub $%d, %%rsp", sz);
   depth += sz / 8;
 
-  for (int i = 0; i < ty->size; i++) {
+  for (int i = 0; i < ty->size; ++i) {
     println("  mov %d(%%rax), %%r10b", i);
     println("  mov %%r10b, %d(%%rsp)", i);
   }
@@ -505,8 +505,9 @@ static int push_args(Node *node) {
 
   // If the return type is a large struct/union, the caller passes
   // a pointer to a buffer as if it were the first argument.
-  if (node->ret_buffer && node->ty->size > 16)
-    gp++;
+  if (node->ret_buffer && node->ty->size > 16) {
+    ++gp;
+  }
 
   // Load as many arguments to the registers as possible.
   for (Node *arg = node->args; arg; arg = arg->next) {
@@ -535,7 +536,7 @@ static int push_args(Node *node) {
     case TY_DOUBLE:
       if (fp++ >= FP_MAX) {
         arg->pass_by_stack = true;
-        stack++;
+        ++stack;
       }
       break;
     case TY_LDOUBLE:
@@ -545,15 +546,15 @@ static int push_args(Node *node) {
     default:
       if (gp++ >= GP_MAX) {
         arg->pass_by_stack = true;
-        stack++;
+        ++stack;
       }
     }
   }
 
   if ((depth + stack) % 2 == 1) {
     println("  sub $8, %%rsp");
-    depth++;
-    stack++;
+    ++depth;
+    ++stack;
   }
 
   push_args2(node->args, true);
@@ -579,13 +580,13 @@ static void copy_ret_buffer(Obj *var) {
       println("  movss %%xmm0, %d(%%rbp)", var->offset);
     else
       println("  movsd %%xmm0, %d(%%rbp)", var->offset);
-    fp++;
+    ++fp;
   } else {
-    for (int i = 0; i < MIN(8, ty->size); i++) {
+    for (int i = 0; i < MIN(8, ty->size); ++i) {
       println("  mov %%al, %d(%%rbp)", var->offset + i);
       println("  shr $8, %%rax");
     }
-    gp++;
+    ++gp;
   }
 
   if (ty->size > 8) {
@@ -598,7 +599,7 @@ static void copy_ret_buffer(Obj *var) {
     } else {
       char *reg1 = (gp == 0) ? "%al" : "%dl";
       char *reg2 = (gp == 0) ? "%rax" : "%rdx";
-      for (int i = 8; i < MIN(16, ty->size); i++) {
+      for (int i = 8; i < MIN(16, ty->size); ++i) {
         println("  mov %s, %d(%%rbp)", reg1, var->offset + i);
         println("  shr $8, %s", reg2);
       }
@@ -618,14 +619,14 @@ static void copy_struct_reg(void) {
       println("  movss (%%rdi), %%xmm0");
     else
       println("  movsd (%%rdi), %%xmm0");
-    fp++;
+    ++fp;
   } else {
     println("  mov $0, %%rax");
     for (int i = MIN(8, ty->size) - 1; i >= 0; i--) {
       println("  shl $8, %%rax");
       println("  mov %d(%%rdi), %%al", i);
     }
-    gp++;
+    ++gp;
   }
 
   if (ty->size > 8) {
@@ -653,7 +654,7 @@ static void copy_struct_mem(void) {
 
   println("  mov %d(%%rbp), %%rdi", var->offset);
 
-  for (int i = 0; i < ty->size; i++) {
+  for (int i = 0; i < ty->size; ++i) {
     println("  mov %d(%%rax), %%dl", i);
     println("  mov %%dl, %d(%%rdi)", i);
   }
@@ -1415,7 +1416,7 @@ static void emit_data(Obj *prog) {
 
       if (var->init_data_is_string_literal) {
         fprintf(output_file, "  .ascii \"");
-        for (int i = 0; i < var->ty->size; i++) {
+        for (int i = 0; i < var->ty->size; ++i) {
           char c = var->init_data[i];
           switch (c) {
             case '\0': fprintf(output_file, "\\0"); break;
@@ -1508,7 +1509,7 @@ static void store_gp(int r, int offset, int sz) {
     println("  mov %s, %d(%%rbp)", argreg64[r], offset);
     return;
   default:
-    for (int i = 0; i < sz; i++) {
+    for (int i = 0; i < sz; ++i) {
       println("  mov %s, %d(%%rbp)", argreg8[r], offset + i);
       println("  shr $8, %s", argreg64[r]);
     }
@@ -1543,10 +1544,11 @@ static void emit_text(Obj *prog) {
     if (fn->va_area) {
       int gp = 0, fp = 0;
       for (Obj *var = fn->params; var; var = var->next) {
-        if (is_flonum(var->ty))
-          fp++;
-        else
-          gp++;
+        if (is_flonum(var->ty)) {
+          ++fp;
+        } else {
+          ++gp;
+        }
       }
 
       int off = fn->va_area->offset;
@@ -1635,8 +1637,9 @@ void codegen(Obj *prog, FILE *out) {
   output_file = out;
 
   File **files = get_input_files();
-  for (int i = 0; files[i]; i++)
+  for (int i = 0; files[i]; ++i) {
     println("  .file %d \"%s\"", files[i]->file_no, files[i]->name);
+  }
 
   assign_lvar_offsets(prog);
 

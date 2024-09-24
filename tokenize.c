@@ -33,8 +33,9 @@ static void verror_at(char *filename, char *input, int line_no,
     line--;
 
   char *end = loc;
-  while (*end && *end != '\n')
-    end++;
+  while (*end && *end != '\n') {
+    ++end;
+  }
 
   // Print out the line.
   int indent = fprintf(stderr, "%s:%d: ", filename, line_no);
@@ -51,9 +52,11 @@ static void verror_at(char *filename, char *input, int line_no,
 
 void error_at(char *loc, char *fmt, ...) {
   int line_no = 1;
-  for (char *p = current_file->contents; p < loc; p++)
-    if (*p == '\n')
-      line_no++;
+  for (char *p = current_file->contents; p < loc; ++p) {
+    if (*p == '\n') {
+      ++line_no;
+    }
+  }
 
   va_list ap;
   va_start(ap, fmt);
@@ -217,7 +220,7 @@ static bool is_keyword(Token *tok) {
       "__attribute__",
     };
 
-    for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++)
+    for (int i = 0; i < sizeof(kw) / sizeof(*kw); ++i)
       hashmap_put(&map, kw[i], (void *)1);
   }
 
@@ -239,12 +242,12 @@ static int read_escaped_char(char **new_pos, char *p) {
 
   if (*p == 'x') {
     // Read a hexadecimal number.
-    p++;
+    ++p;
     if (!isxdigit(*p))
       error_at(p, "invalid hex escape sequence");
 
     int c = 0;
-    for (; isxdigit(*p); p++)
+    for (; isxdigit(*p); ++p)
       c = (c << 4) + from_hex(*p);
     *new_pos = p;
     return c;
@@ -280,11 +283,11 @@ static int read_escaped_char(char **new_pos, char *p) {
 // Find a closing double-quote.
 static char *string_literal_end(char *p) {
   char *start = p;
-  for (; *p != '"'; p++) {
+  for (; *p != '"'; ++p) {
     if (*p == '\n' || *p == '\0')
       error_at(start, "unclosed string literal");
     if (*p == '\\')
-      p++;
+      ++p;
   }
   return p;
 }
@@ -423,10 +426,10 @@ static bool convert_pp_int(Token *tok) {
     p += 2;
     l = true;
   } else if (tolower(*p) == 'l') {
-    p++;
+    ++p;
     l = true;
   } else if (tolower(*p) == 'u') {
-    p++;
+    ++p;
     u = true;
   }
 
@@ -486,10 +489,10 @@ static void convert_pp_number(Token *tok) {
   Type *ty;
   if (*end == 'f' || *end == 'F') {
     ty = ty_float;
-    end++;
+    ++end;
   } else if (*end == 'l' || *end == 'L') {
     ty = ty_ldouble;
-    end++;
+    ++end;
   } else {
     ty = ty_double;
   }
@@ -521,8 +524,9 @@ static void add_line_numbers(Token *tok) {
       tok->line_no = n;
       tok = tok->next;
     }
-    if (*p == '\n')
-      n++;
+    if (*p == '\n') {
+      ++n;
+    }
   } while (*p++);
 }
 
@@ -551,8 +555,9 @@ Token *tokenize(File *file) {
     // Skip line comments.
     if (startswith2(p, '/', '/')) {
       p += 2;
-      while (*p != '\n')
-        p++;
+      while (*p != '\n') {
+        ++p;
+      }
       has_space = true;
       continue;
     }
@@ -569,7 +574,7 @@ Token *tokenize(File *file) {
 
     // Skip newline.
     if (*p == '\n') {
-      p++;
+      ++p;
       at_bol = true;
       has_space = false;
       continue;
@@ -577,7 +582,7 @@ Token *tokenize(File *file) {
 
     // Skip whitespace characters.
     if (isspace(*p)) {
-      p++;
+      ++p;
       has_space = true;
       continue;
     }
@@ -586,12 +591,13 @@ Token *tokenize(File *file) {
     if (isdigit(*p) || (*p == '.' && isdigit(p[1]))) {
       char *q = p++;
       for (;;) {
-        if (p[0] && p[1] && strchr("eEpP", p[0]) && strchr("+-", p[1]))
+        if (p[0] && p[1] && strchr("eEpP", p[0]) && strchr("+-", p[1])) {
           p += 2;
-        else if (isalnum(*p) || *p == '.')
-          p++;
-        else
+        } else if (isalnum(*p) || *p == '.') {
+          ++p;
+        } else {
           break;
+        }
       }
       cur = cur->next = new_token(TK_PP_NUM, q, p);
       continue;
@@ -748,7 +754,7 @@ static void canonicalize_newlines(char *p) {
       i += 2;
       p[j++] = '\n';
     } else if (p[i] == '\r') {
-      i++;
+      ++i;
       p[j++] = '\n';
     } else {
       p[j++] = p[i++];
@@ -777,7 +783,7 @@ static void remove_backslash_newlines(char *p) {
   while (p[i]) {
     if (p[i] == '\\' && p[i + 1] == '\n') {
       i += 2;
-      n++;
+      ++n;
     } else if (p[i] == '\n') {
       p[j++] = p[i++];
       for (; n > 0; n--) p[j++] = '\n';
@@ -796,7 +802,7 @@ static void remove_backslash_newlines(char *p) {
 
 static uint32_t read_universal_char(char *p, int len) {
   uint32_t c = 0;
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < len; ++i) {
     if (!isxdigit(p[i]))
       return 0;
     c = (c << 4) | from_hex(p[i]);
@@ -807,7 +813,7 @@ static uint32_t read_universal_char(char *p, int len) {
 // Replace \u or \U escape sequences with corresponding UTF-8 bytes.
 static void convert_universal_chars(char *p) {
   // Find the first \u or \U, if any.
-  while (*p && !(*p == '\\' && tolower(*(p+1)) == 'u')) p++;
+  while (*p && !(*p == '\\' && tolower(*(p+1)) == 'u')) ++p;
   if (!*p) return;
 
   char *q = p;

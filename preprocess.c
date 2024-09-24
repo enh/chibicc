@@ -199,18 +199,20 @@ static Token *skip_cond_incl(Token *tok) {
 // Double-quote a given string and returns it.
 static char *quote_string(char *str) {
   int bufsize = 3;
-  for (int i = 0; str[i]; i++) {
-    if (str[i] == '\\' || str[i] == '"')
-      bufsize++;
-    bufsize++;
+  for (int i = 0; str[i]; ++i) {
+    if (str[i] == '\\' || str[i] == '"') {
+      ++bufsize;
+    }
+    ++bufsize;
   }
 
   char *buf = calloc(1, bufsize);
   char *p = buf;
   *p++ = '"';
-  for (int i = 0; str[i]; i++) {
-    if (str[i] == '\\' || str[i] == '"')
+  for (int i = 0; str[i]; ++i) {
+    if (str[i] == '\\' || str[i] == '"') {
       *p++ = '\\';
+    }
     *p++ = str[i];
   }
   *p++ = '"';
@@ -399,10 +401,11 @@ static MacroArg *read_macro_arg_one(Token **rest, Token *tok, bool read_rest) {
     if (tok->kind == TK_EOF)
       error_tok(tok, "premature end of input");
 
-    if (equal(tok, "("))
-      level++;
-    else if (equal(tok, ")"))
-      level--;
+    if (equal(tok, "(")) {
+      ++level;
+    } else if (equal(tok, ")")) {
+      --level;
+    }
 
     cur = cur->next = copy_token(tok);
     tok = tok->next;
@@ -466,8 +469,9 @@ static char *join_tokens(Token *tok, Token *end) {
   // Compute the length of the resulting token.
   int len = 1;
   for (Token *t = tok; t != end && t->kind != TK_EOF; t = t->next) {
-    if (t != tok && t->has_space)
-      len++;
+    if (t != tok && t->has_space) {
+      ++len;
+    }
     len += t->len;
   }
 
@@ -692,7 +696,7 @@ char *search_include_paths(char *filename) {
     return cached;
 
   // Search a file from the include paths.
-  for (int i = 0; i < include_paths.len; i++) {
+  for (int i = 0; i < include_paths.len; ++i) {
     char *path = format("%s/%s", include_paths.data[i], filename);
     if (!file_exists(path))
       continue;
@@ -704,7 +708,7 @@ char *search_include_paths(char *filename) {
 }
 
 static char *search_include_next(char *filename) {
-  for (; include_next_idx < include_paths.len; include_next_idx++) {
+  for (; include_next_idx < include_paths.len; ++include_next_idx) {
     char *path = format("%s/%s", include_paths.data[include_next_idx], filename);
     if (file_exists(path))
       return path;

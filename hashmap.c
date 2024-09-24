@@ -16,7 +16,7 @@
 
 static uint64_t fnv_hash(char *s, int len) {
   uint64_t hash = 0xcbf29ce484222325;
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < len; ++i) {
     hash *= 0x100000001b3;
     hash ^= (unsigned char)s[i];
   }
@@ -28,9 +28,11 @@ static uint64_t fnv_hash(char *s, int len) {
 static void rehash(HashMap *map) {
   // Compute the size of the new hashmap.
   int nkeys = 0;
-  for (int i = 0; i < map->capacity; i++)
-    if (map->buckets[i].key && map->buckets[i].key != TOMBSTONE)
-      nkeys++;
+  for (int i = 0; i < map->capacity; ++i) {
+    if (map->buckets[i].key && map->buckets[i].key != TOMBSTONE) {
+      ++nkeys;
+    }
+  }
 
   int cap = map->capacity;
   while ((nkeys * 100) / cap >= LOW_WATERMARK)
@@ -42,7 +44,7 @@ static void rehash(HashMap *map) {
   map2.buckets = calloc(cap, sizeof(HashEntry));
   map2.capacity = cap;
 
-  for (int i = 0; i < map->capacity; i++) {
+  for (int i = 0; i < map->capacity; ++i) {
     HashEntry *ent = &map->buckets[i];
     if (ent->key && ent->key != TOMBSTONE)
       hashmap_put2(&map2, ent->key, ent->keylen, ent->val);
@@ -63,7 +65,7 @@ static HashEntry *get_entry(HashMap *map, char *key, int keylen) {
 
   uint64_t hash = fnv_hash(key, keylen);
 
-  for (int i = 0; i < map->capacity; i++) {
+  for (int i = 0; i < map->capacity; ++i) {
     HashEntry *ent = &map->buckets[(hash + i) % map->capacity];
     if (match(ent, key, keylen))
       return ent;
@@ -83,7 +85,7 @@ static HashEntry *get_or_insert_entry(HashMap *map, char *key, int keylen) {
 
   uint64_t hash = fnv_hash(key, keylen);
 
-  for (int i = 0; i < map->capacity; i++) {
+  for (int i = 0; i < map->capacity; ++i) {
     HashEntry *ent = &map->buckets[(hash + i) % map->capacity];
 
     if (match(ent, key, keylen))
@@ -136,28 +138,28 @@ void hashmap_delete2(HashMap *map, char *key, int keylen) {
 void hashmap_test(void) {
   HashMap *map = calloc(1, sizeof(HashMap));
 
-  for (int i = 0; i < 5000; i++)
+  for (int i = 0; i < 5000; ++i)
     hashmap_put(map, format("key %d", i), (void *)(size_t)i);
-  for (int i = 1000; i < 2000; i++)
+  for (int i = 1000; i < 2000; ++i)
     hashmap_delete(map, format("key %d", i));
-  for (int i = 1500; i < 1600; i++)
+  for (int i = 1500; i < 1600; ++i)
     hashmap_put(map, format("key %d", i), (void *)(size_t)i);
-  for (int i = 6000; i < 7000; i++)
+  for (int i = 6000; i < 7000; ++i)
     hashmap_put(map, format("key %d", i), (void *)(size_t)i);
 
-  for (int i = 0; i < 1000; i++)
+  for (int i = 0; i < 1000; ++i)
     assert((size_t)hashmap_get(map, format("key %d", i)) == i);
-  for (int i = 1000; i < 1500; i++)
+  for (int i = 1000; i < 1500; ++i)
     assert(hashmap_get(map, "no such key") == NULL);
-  for (int i = 1500; i < 1600; i++)
+  for (int i = 1500; i < 1600; ++i)
     assert((size_t)hashmap_get(map, format("key %d", i)) == i);
-  for (int i = 1600; i < 2000; i++)
+  for (int i = 1600; i < 2000; ++i)
     assert(hashmap_get(map, "no such key") == NULL);
-  for (int i = 2000; i < 5000; i++)
+  for (int i = 2000; i < 5000; ++i)
     assert((size_t)hashmap_get(map, format("key %d", i)) == i);
-  for (int i = 5000; i < 6000; i++)
+  for (int i = 5000; i < 6000; ++i)
     assert(hashmap_get(map, "no such key") == NULL);
-  for (int i = 6000; i < 7000; i++)
+  for (int i = 6000; i < 7000; ++i)
     hashmap_put(map, format("key %d", i), (void *)(size_t)i);
 
   assert(hashmap_get(map, "no such key") == NULL);

@@ -269,16 +269,18 @@ static Initializer *new_initializer(Type *ty, bool is_flexible) {
     }
 
     init->children = calloc(ty->array_len, sizeof(Initializer *));
-    for (int i = 0; i < ty->array_len; i++)
+    for (int i = 0; i < ty->array_len; ++i) {
       init->children[i] = new_initializer(ty->base, false);
+    }
     return init;
   }
 
   if (ty->kind == TY_STRUCT || ty->kind == TY_UNION) {
     // Count the number of struct members.
     int len = 0;
-    for (Member *mem = ty->members; mem; mem = mem->next)
-      len++;
+    for (Member *mem = ty->members; mem; mem = mem->next) {
+      ++len;
+    }
 
     init->children = calloc(len, sizeof(Initializer *));
 
@@ -929,20 +931,23 @@ static void string_initializer(Token **rest, Token *tok, Initializer *init) {
   switch (init->ty->base->size) {
   case 1: {
     char *str = tok->str;
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < len; ++i) {
       init->children[i]->expr = new_num(str[i], tok);
+    }
     break;
   }
   case 2: {
     uint16_t *str = (uint16_t *)tok->str;
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < len; ++i) {
       init->children[i]->expr = new_num(str[i], tok);
+    }
     break;
   }
   case 4: {
     uint32_t *str = (uint32_t *)tok->str;
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < len; ++i) {
       init->children[i]->expr = new_num(str[i], tok);
+    }
     break;
   }
   default:
@@ -1032,8 +1037,9 @@ static void designation(Token **rest, Token *tok, Initializer *init) {
     array_designator(&tok, tok, init->ty, &begin, &end);
 
     Token *tok2;
-    for (int i = begin; i <= end; i++)
+    for (int i = begin; i <= end; ++i) {
       designation(&tok2, tok, init->children[i]);
+    }
     array_initializer2(rest, tok2, init, begin + 1);
     return;
   }
@@ -1085,7 +1091,7 @@ static int count_array_init_elements(Token *tok, Type *ty) {
       initializer2(&tok, tok, dummy);
     }
 
-    i++;
+    ++i;
     max = MAX(max, i);
   }
   return max;
@@ -1107,7 +1113,7 @@ static void array_initializer1(Token **rest, Token *tok, Initializer *init) {
     *init = *new_initializer(array_of(init->ty->base, len), false);
   }
 
-  for (int i = 0; !consume_end(rest, tok); i++) {
+  for (int i = 0; !consume_end(rest, tok); ++i) {
     if (!first)
       tok = skip(tok, ",");
     first = false;
@@ -1117,7 +1123,7 @@ static void array_initializer1(Token **rest, Token *tok, Initializer *init) {
       array_designator(&tok, tok, init->ty, &begin, &end);
 
       Token *tok2;
-      for (int j = begin; j <= end; j++)
+      for (int j = begin; j <= end; ++j)
         designation(&tok2, tok, init->children[j]);
       tok = tok2;
       i = end;
@@ -1138,7 +1144,7 @@ static void array_initializer2(Token **rest, Token *tok, Initializer *init, int 
     *init = *new_initializer(array_of(init->ty->base, len), false);
   }
 
-  for (; i < init->ty->array_len && !is_end(tok); i++) {
+  for (; i < init->ty->array_len && !is_end(tok); ++i) {
     Token *start = tok;
     if (i > 0)
       tok = skip(tok, ",");
@@ -1332,7 +1338,7 @@ static Node *init_desg_expr(InitDesg *desg, Token *tok) {
 static Node *create_lvar_init(Initializer *init, Type *ty, InitDesg *desg, Token *tok) {
   if (ty->kind == TY_ARRAY) {
     Node *node = new_node(ND_NULL_EXPR, tok);
-    for (int i = 0; i < ty->array_len; i++) {
+    for (int i = 0; i < ty->array_len; ++i) {
       InitDesg desg2 = {desg, i};
       Node *rhs = create_lvar_init(init->children[i], ty->base, &desg2, tok);
       node = new_binary(ND_COMMA, node, rhs, tok);
@@ -1418,7 +1424,7 @@ static Relocation *
 write_gvar_data(Relocation *cur, Initializer *init, Type *ty, char *buf, int offset) {
   if (ty->kind == TY_ARRAY) {
     int sz = ty->base->size;
-    for (int i = 0; i < ty->array_len; i++)
+    for (int i = 0; i < ty->array_len; ++i)
       cur = write_gvar_data(cur, init->children[i], ty->base, buf, offset + sz * i);
     return cur;
   }
@@ -1507,7 +1513,7 @@ static bool is_typename(Token *tok) {
       "_Thread_local", "__thread", "_Atomic",
     };
 
-    for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++)
+    for (int i = 0; i < sizeof(kw) / sizeof(*kw); ++i)
       hashmap_put(&map, kw[i], (void *)1);
   }
 
@@ -3190,7 +3196,7 @@ static void mark_live(Obj *var) {
     return;
   var->is_live = true;
 
-  for (int i = 0; i < var->refs.len; i++) {
+  for (int i = 0; i < var->refs.len; ++i) {
     Obj *fn = find_func(var->refs.data[i]);
     if (fn)
       mark_live(fn);
