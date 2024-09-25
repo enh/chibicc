@@ -741,27 +741,6 @@ File *new_file(char *name, int file_no, char *contents) {
   return file;
 }
 
-// Replaces \r or \r\n with \n.
-static void canonicalize_newlines(char *p) {
-  // Fast path: there probably aren't any.
-  if (!strchr(p, '\r')) return;
-
-  int i = 0, j = 0;
-  while (p[i]) {
-    if (p[i] == '\r' && p[i + 1] == '\n') {
-      i += 2;
-      p[j++] = '\n';
-    } else if (p[i] == '\r') {
-      ++i;
-      p[j++] = '\n';
-    } else {
-      p[j++] = p[i++];
-    }
-  }
-
-  p[j] = '\0';
-}
-
 // Removes backslashes followed by a newline.
 static void remove_backslash_newlines(char *p) {
   // Fast path: escaped newlines only occur in multiline macros,
@@ -855,7 +834,6 @@ Token *tokenize_file(char *path) {
   // texts, but it's not uncommon particularly on Windows.)
   if (!memcmp(p, "\xef\xbb\xbf", 3)) p += 3;
 
-  canonicalize_newlines(p);
   remove_backslash_newlines(p);
   convert_universal_chars(p);
 
