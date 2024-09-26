@@ -15,10 +15,10 @@
 #define TOMBSTONE ((void *)-1)
 
 static uint64_t fnv_hash(char *s, int len) {
+  unsigned char *p = (unsigned char *)s, *end = p + len;
   uint64_t hash = 0xcbf29ce484222325;
-  for (int i = 0; i < len; ++i) {
-    hash *= 0x100000001b3;
-    hash ^= (unsigned char)s[i];
+  for (; p != end; ++p) {
+    hash = (hash * 0x100000001b3) ^ *p;
   }
   return hash;
 }
@@ -43,6 +43,7 @@ static void rehash(HashMap *map) {
   HashMap map2 = {};
   map2.buckets = calloc(cap, sizeof(HashEntry));
   map2.capacity = cap;
+  map2.mask = cap - 1;
 
   for (int i = 0; i < map->capacity; ++i) {
     HashEntry *ent = &map->buckets[i];
@@ -66,7 +67,7 @@ static HashEntry *get_entry(HashMap *map, char *key, int keylen) {
   uint64_t hash = fnv_hash(key, keylen);
 
   for (int i = 0; i < map->capacity; ++i) {
-    HashEntry *ent = &map->buckets[(hash + i) % map->capacity];
+    HashEntry *ent = &map->buckets[(hash + i) & map->mask];
     if (match(ent, key, keylen))
       return ent;
     if (ent->key == NULL)
@@ -79,6 +80,7 @@ static HashEntry *get_or_insert_entry(HashMap *map, char *key, int keylen) {
   if (!map->buckets) {
     map->buckets = calloc(INIT_SIZE, sizeof(HashEntry));
     map->capacity = INIT_SIZE;
+    map->mask = map->capacity - 1;
   } else if ((map->used * 100) / map->capacity >= HIGH_WATERMARK) {
     rehash(map);
   }
@@ -86,7 +88,7 @@ static HashEntry *get_or_insert_entry(HashMap *map, char *key, int keylen) {
   uint64_t hash = fnv_hash(key, keylen);
 
   for (int i = 0; i < map->capacity; ++i) {
-    HashEntry *ent = &map->buckets[(hash + i) % map->capacity];
+    HashEntry *ent = &map->buckets[(hash + i) & map->mask];
 
     if (match(ent, key, keylen))
       return ent;
