@@ -6,9 +6,9 @@ OBJS=$(SRCS:.c=.o)
 TEST_SRCS=$(wildcard test/*.c)
 TESTS=$(TEST_SRCS:.c=.exe)
 
-all: test test-stage2
+all: test test-stage2 test-stage3
 
-# Stage 1
+# Stage 1 - build chibicc with the host cc
 
 chibicc: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
@@ -23,7 +23,7 @@ test: $(TESTS)
 	for i in $^; do echo $$i; ./$$i || exit 1; echo; done
 	test/driver.sh ./chibicc
 
-# Stage 2
+# Stage 2 - build chibicc with the host-built chibicc
 
 stage2/chibicc: $(OBJS:%=stage2/%)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
@@ -41,10 +41,28 @@ test-stage2: $(TESTS:test/%=stage2/test/%)
 	for i in $^; do echo $$i; ./$$i || exit 1; echo; done
 	test/driver.sh ./stage2/chibicc
 
+# Stage 3 - build chibicc with the chibicc-built chibicc
+
+stage3/chibicc: $(OBJS:%=stage3/%)
+	./stage2/chibicc $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+stage3/%.o: stage2/chibicc %.c
+	mkdir -p stage3/test
+	./stage2/chibicc -Iinclude -c -o $(@D)/$*.o $*.c
+
+stage3/test/%.exe: stage3/chibicc test/%.c
+	mkdir -p stage3/test
+	./stage3/chibicc -Iinclude -Itest -c -o stage3/test/$*.o test/$*.c
+	$(CC) -o $@ stage3/test/$*.o -xc test/common
+
+test-stage3: $(TESTS:test/%=stage3/test/%)
+	for i in $^; do echo $$i; ./$$i || exit 1; echo; done
+	test/driver.sh ./stage3/chibicc
+
 # Misc.
 
 clean:
-	rm -rf chibicc tmp* $(TESTS) test/*.s test/*.exe stage2
+	rm -rf chibicc tmp* $(TESTS) test/*.s test/*.exe stage2 stage3
 	find * -type f '(' -name '*~' -o -name '*.o' ')' -exec rm {} ';'
 
-.PHONY: all clean test test-stage2
+.PHONY: all clean test test-stage2 test-stage3
