@@ -40,9 +40,9 @@
   * when should ND_MEMZERO switch over to rep stos? should we unroll more movs?
   * recognize when a variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
   * new_add() uses multiplication rather than shifts
-  * new_add() multiplies by one for bytes
   * general power-of-two multiplication/division to shift conversation
-  * general simplification of add/sub/mul of 0/1
+  * general simplification of add/sub/mul/div of 0/1
+    * remove new_add()/new_sub() mul/div by one workarounds
   * simplification of i++ to ++i in for statements
   * general simplification of i++ to ++i
   * remove jumps over else when there is no else
