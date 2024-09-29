@@ -224,6 +224,35 @@ static void load(Type *ty) {
   }
 }
 
+// Copy n bytes from the source address in %rax to the destination in dst_reg.
+static void gen_mem_copy(const char *dst_reg, int n) {
+  int i = 0;
+  while (n > 8) {
+    println("  movq %d(%%rax), %%r8", i);
+    println("  movq %%r8, %d(%s)", i, dst_reg);
+    n -= 8;
+    i += 8;
+  }
+  while (n > 4) {
+    println("  movl %d(%%rax), %%r8d", i);
+    println("  movl %%r8d, %d(%s)", i, dst_reg);
+    n -= 4;
+    i += 4;
+  }
+  while (n > 2) {
+    println("  movw %d(%%rax), %%r8w", i);
+    println("  movw %%r8w, %d(%s)", i, dst_reg);
+    n -= 2;
+    i += 2;
+  }
+  while (n > 0) {
+    println("  movb %d(%%rax), %%r8b", i);
+    println("  movb %%r8b, %d(%s)", i, dst_reg);
+    --n;
+    ++i;
+  }
+}
+
 // Store %rax to an address that the stack top is pointing to.
 static void store(Type *ty) {
   pop("%rdi");
@@ -231,10 +260,7 @@ static void store(Type *ty) {
   switch (ty->kind) {
   case TY_STRUCT:
   case TY_UNION:
-    for (int i = 0; i < ty->size; ++i) {
-      println("  mov %d(%%rax), %%r8b", i);
-      println("  mov %%r8b, %d(%%rdi)", i);
-    }
+    gen_mem_copy("%rdi", ty->size);
     return;
   case TY_FLOAT:
     println("  movss %%xmm0, (%%rdi)");
@@ -446,10 +472,7 @@ static void push_struct(Type *ty) {
   println("  sub $%d, %%rsp", sz);
   depth += sz / 8;
 
-  for (int i = 0; i < ty->size; ++i) {
-    println("  mov %d(%%rax), %%r10b", i);
-    println("  mov %%r10b, %d(%%rsp)", i);
-  }
+  gen_mem_copy("%rsp", ty->size);
 }
 
 static void push_args2(Node *args, bool first_pass) {
@@ -653,11 +676,7 @@ static void copy_struct_mem(void) {
   Obj *var = current_fn->params;
 
   println("  mov %d(%%rbp), %%rdi", var->offset);
-
-  for (int i = 0; i < ty->size; ++i) {
-    println("  mov %d(%%rax), %%dl", i);
-    println("  mov %%dl, %d(%%rdi)", i);
-  }
+  gen_mem_copy("%rdi", ty->size);
 }
 
 static void builtin_alloca(void) {
@@ -1297,10 +1316,11 @@ static void gen_stmt(Node *node) {
       switch (ty->kind) {
       case TY_STRUCT:
       case TY_UNION:
-        if (ty->size <= 16)
+        if (ty->size <= 16) {
           copy_struct_reg();
-        else
+        } else {
           copy_struct_mem();
+        }
         break;
       }
     }
