@@ -114,9 +114,6 @@ static Token *new_token(TokenKind kind, char *start, char *end) {
   return tok;
 }
 
-#define startswith2(p, ch1, ch2) (*p == ch1 && *(p+1) == ch2)
-#define startswith3(p, ch1, ch2, ch3) (*p == ch1 && *(p+1) == ch2 && *(p+2) == ch3)
-
 // Read an identifier and returns the length of it.
 // If p does not point to a valid identifier, 0 is returned.
 static int read_ident(char *start) {
@@ -412,6 +409,7 @@ static bool convert_pp_int(Token *tok) {
   // Read U, L or LL suffixes.
   bool l = false;
   bool u = false;
+#define startswith3(p, ch1, ch2, ch3) (*p == ch1 && *(p+1) == ch2 && *(p+2) == ch3)
   if (startswith3(p, 'L', 'L', 'U') || startswith3(p, 'L', 'L', 'u') ||
       startswith3(p, 'l', 'l', 'U') || startswith3(p, 'l', 'l', 'u') ||
       startswith3(p, 'U', 'L', 'L') || startswith3(p, 'U', 'l', 'l') ||
@@ -422,7 +420,7 @@ static bool convert_pp_int(Token *tok) {
              ((*p == 'l' || *p == 'L') && (p[1] == 'u' || p[1] == 'U'))) {
     p += 2;
     l = u = true;
-  } else if (startswith2(p, 'L', 'L') || startswith2(p, 'l', 'l')) {
+  } else if ((*p == 'L' && p[1] == 'L') || (*p == 'l' && p[1] == 'l')) {
     p += 2;
     l = true;
   } else if (*p == 'l' || *p == 'L') {
@@ -549,29 +547,32 @@ Token *tokenize(File *file) {
   at_bol = true;
   has_space = false;
 
-  while (*p) {
-    // Skip line comments.
-    if (startswith2(p, '/', '/')) {
-      p += 2;
-      while (*p != '\n') {
-        ++p;
+  char ch;
+  while ((ch = *p)) {
+    if (ch == '/') {
+      // Skip line comments.
+      if (p[1] == '/') {
+        p += 2;
+        while (*p != '\n') {
+          ++p;
+        }
+        has_space = true;
+        continue;
       }
-      has_space = true;
-      continue;
-    }
 
-    // Skip block comments.
-    if (startswith2(p, '/', '*')) {
-      char *q = strstr(p + 2, "*/");
-      if (!q)
-        error_at(p, "unclosed block comment");
-      p = q + 2;
-      has_space = true;
-      continue;
+      // Skip block comments.
+      if (p[1] == '*') {
+        char *q = strstr(p + 2, "*/");
+        if (!q)
+          error_at(p, "unclosed block comment");
+        p = q + 2;
+        has_space = true;
+        continue;
+      }
     }
 
     // Skip newline.
-    if (*p == '\n') {
+    if (ch == '\n') {
       ++p;
       at_bol = true;
       has_space = false;
@@ -579,14 +580,14 @@ Token *tokenize(File *file) {
     }
 
     // Skip whitespace characters.
-    if (is_space(*p)) {
+    if (is_space(ch)) {
       ++p;
       has_space = true;
       continue;
     }
 
-    // Numeric literal
-    if (is_digit(*p) || (*p == '.' && is_digit(p[1]))) {
+    // Numeric literal?
+    if (is_digit(ch) || (ch == '.' && is_digit(p[1]))) {
       char *q = p++;
       for (;;) {
         if (p[0] && p[1] && strchr("eEpP", p[0]) && strchr("+-", p[1])) {
@@ -602,69 +603,71 @@ Token *tokenize(File *file) {
       continue;
     }
 
-    // String literal
-    if (*p == '"') {
+    // String literal?
+    if (ch == '"') {
       cur = cur->next = read_string_literal(p, p);
       p += cur->len;
       continue;
     }
 
-    // UTF-8 string literal
-    if (startswith3(p, 'u', '8', '"')) {
-      cur = cur->next = read_string_literal(p, p + 2);
-      p += cur->len;
-      continue;
-    }
-
-    // UTF-16 string literal
-    if (startswith2(p, 'u', '"')) {
-      cur = cur->next = read_utf16_string_literal(p, p + 1);
-      p += cur->len;
-      continue;
-    }
-
-    // Wide string literal
-    if (startswith2(p, 'L', '"')) {
-      cur = cur->next = read_utf32_string_literal(p, p + 1, ty_int);
-      p += cur->len;
-      continue;
-    }
-
-    // UTF-32 string literal
-    if (startswith2(p, 'U', '"')) {
-      cur = cur->next = read_utf32_string_literal(p, p + 1, ty_uint);
-      p += cur->len;
-      continue;
-    }
-
-    // Character literal
-    if (*p == '\'') {
+    // Character literal?
+    if (ch == '\'') {
       cur = cur->next = read_char_literal(p, p, ty_int);
       cur->val = (char)cur->val;
       p += cur->len;
       continue;
     }
 
-    // UTF-16 character literal
-    if (startswith2(p, 'u', '\'')) {
-      cur = cur->next = read_char_literal(p, p + 1, ty_ushort);
-      cur->val &= 0xffff;
-      p += cur->len;
-      continue;
-    }
+    if (ch == 'u') {
+      // UTF-8 string literal?
+      if (p[1] == '8' && p[2] == '"') {
+        cur = cur->next = read_string_literal(p, p + 2);
+        p += cur->len;
+        continue;
+      }
 
-    // Wide character literal
-    if (startswith2(p, 'L', '\'')) {
-      cur = cur->next = read_char_literal(p, p + 1, ty_int);
-      p += cur->len;
-      continue;
-    }
+      // UTF-16 string literal?
+      if (p[1] == '"') {
+        cur = cur->next = read_utf16_string_literal(p, p + 1);
+        p += cur->len;
+        continue;
+      }
 
-    // UTF-32 character literal
-    if (startswith2(p, 'U', '\'')) {
-      cur = cur->next = read_char_literal(p, p + 1, ty_uint);
-      p += cur->len;
-      continue;
+      // UTF-16 character literal?
+      if (p[1] == '\'') {
+        cur = cur->next = read_char_literal(p, p + 1, ty_ushort);
+        cur->val &= 0xffff;
+        p += cur->len;
+        continue;
+      }
+    } else if (ch == 'U') {
+      // UTF-32 string literal?
+      if (p[1] == '"') {
+        cur = cur->next = read_utf32_string_literal(p, p + 1, ty_uint);
+        p += cur->len;
+        continue;
+      }
+
+      // UTF-32 character literal?
+      if (p[1] == '\'') {
+        cur = cur->next = read_char_literal(p, p + 1, ty_uint);
+        p += cur->len;
+        continue;
+      }
+    } else if (ch == 'L') {
+      // Wide character literal?
+      if (p[1] == '\'') {
+        cur = cur->next = read_char_literal(p, p + 1, ty_int);
+        p += cur->len;
+        continue;
+      }
+
+      // Wide string literal?
+      if (p[1] == '"') {
+        cur = cur->next = read_utf32_string_literal(p, p + 1, ty_int);
+        p += cur->len;
+        continue;
+      }
     }
 
     // Identifier or keyword
