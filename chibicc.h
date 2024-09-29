@@ -1,6 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
-#include <ctype.h>
 #include <errno.h>
 #include <glob.h>
 #include <libgen.h>
@@ -420,10 +419,14 @@ uint32_t decode_utf8(char **new_pos, char *p);
 #define is_ident1(c) ((c < 0x80) ? is_ident1_ascii(c) : is_ident1_non_ascii(c))
 #define is_ident2(c) ((c < 0x80) ? is_ident2_ascii(c) : is_ident2_non_ascii(c))
 #define is_char_between(lo, c, hi) ((((unsigned) c) - lo) < (hi - lo + 1))
+#define is_digit(c) is_char_between('0', c, '9')
+#define is_hex_digit(c) \
+  (is_digit(c) || is_char_between('a', c, 'f') || is_char_between('A', c, 'F'))
+#define is_space(c) (c == ' ' || is_char_between('\t', c, '\r'))
 #define is_ident1_ascii(c) \
   (is_char_between('a', c, 'z') || \
    is_char_between('A', c, 'Z') || c == '_' || c == '$')
-#define is_ident2_ascii(c) (is_ident1_ascii(c) || is_char_between('0', c, '9'))
+#define is_ident2_ascii(c) (is_ident1_ascii(c) || is_digit(c))
 bool is_ident1_non_ascii(uint32_t c);
 bool is_ident2_non_ascii(uint32_t c);
 int display_width(char *p, int len);

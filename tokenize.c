@@ -243,12 +243,12 @@ static int read_escaped_char(char **new_pos, char *p) {
   if (*p == 'x') {
     // Read a hexadecimal number.
     ++p;
-    if (!isxdigit(*p))
-      error_at(p, "invalid hex escape sequence");
+    if (!is_hex_digit(*p)) error_at(p, "invalid hex escape sequence");
 
     int c = 0;
-    for (; isxdigit(*p); ++p)
+    for (; is_hex_digit(*p); ++p) {
       c = (c << 4) + from_hex(*p);
+    }
     *new_pos = p;
     return c;
   }
@@ -395,11 +395,11 @@ static bool convert_pp_int(Token *tok) {
   // Read a binary, octal, decimal or hexadecimal number.
   int base = 10;
   if (*p == '0') {
-    char c2 = tolower(p[1]);
-    if (c2 == 'x' && isxdigit(p[2])) {
+    char c2 = p[1];
+    if ((c2 == 'x' || c2 == 'X') && is_hex_digit(p[2])) {
       p += 2;
       base = 16;
-    } else if (c2 == 'b' && (p[2] == '0' || p[2] == '1')) {
+    } else if ((c2 == 'b' || c2 == 'B') && (p[2] == '0' || p[2] == '1')) {
       p += 2;
       base = 2;
     } else {
@@ -418,17 +418,17 @@ static bool convert_pp_int(Token *tok) {
       startswith3(p, 'u', 'L', 'L') || startswith3(p, 'u', 'l', 'l')) {
     p += 3;
     l = u = true;
-  } else if ((tolower(*p) == 'u' && tolower(*(p+1)) == 'l') ||
-             (tolower(*p) == 'l' && tolower(*(p+1)) == 'u')) {
+  } else if (((*p == 'u' || *p == 'U') && (p[1] == 'l' || p[1] == 'L')) ||
+             ((*p == 'l' || *p == 'L') && (p[1] == 'u' || p[1] == 'U'))) {
     p += 2;
     l = u = true;
   } else if (startswith2(p, 'L', 'L') || startswith2(p, 'l', 'l')) {
     p += 2;
     l = true;
-  } else if (tolower(*p) == 'l') {
+  } else if (*p == 'l' || *p == 'L') {
     ++p;
     l = true;
-  } else if (tolower(*p) == 'u') {
+  } else if (*p == 'u' || *p == 'U') {
     ++p;
     u = true;
   }
@@ -579,19 +579,20 @@ Token *tokenize(File *file) {
     }
 
     // Skip whitespace characters.
-    if (isspace(*p)) {
+    if (is_space(*p)) {
       ++p;
       has_space = true;
       continue;
     }
 
     // Numeric literal
-    if (isdigit(*p) || (*p == '.' && isdigit(p[1]))) {
+    if (is_digit(*p) || (*p == '.' && is_digit(p[1]))) {
       char *q = p++;
       for (;;) {
         if (p[0] && p[1] && strchr("eEpP", p[0]) && strchr("+-", p[1])) {
           p += 2;
-        } else if (isalnum(*p) || *p == '.') {
+        } else if (is_digit(*p) || is_char_between('a', *p, 'z') ||
+                   is_char_between('A', *p, 'Z') || *p == '.') {
           ++p;
         } else {
           break;
@@ -780,7 +781,7 @@ static void remove_backslash_newlines(char *p) {
 static uint32_t read_universal_char(char *p, int len) {
   uint32_t c = 0;
   for (int i = 0; i < len; ++i) {
-    if (!isxdigit(p[i]))
+    if (!is_hex_digit(p[i]))
       return 0;
     c = (c << 4) | from_hex(p[i]);
   }
@@ -790,7 +791,7 @@ static uint32_t read_universal_char(char *p, int len) {
 // Replace \u or \U escape sequences with corresponding UTF-8 bytes.
 static void convert_universal_chars(char *p) {
   // Find the first \u or \U, if any.
-  while (*p && !(*p == '\\' && tolower(*(p+1)) == 'u')) ++p;
+  while (*p && !(*p == '\\' && (p[1] == 'u' || p[1] == 'U'))) ++p;
   if (!*p) return;
 
   char *q = p;
