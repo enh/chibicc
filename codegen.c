@@ -182,6 +182,47 @@ static void gen_addr(Node *node) {
   error_tok(node->tok, "not an lvalue");
 }
 
+// Copy n bytes from the source address in %rax to the destination in dst_reg.
+static void gen_mem_copy(const char *dst_reg, int n) {
+  int i = 0;
+  while (n > 8) {
+    println("  movq %d(%%rax), %%r8", i);
+    println("  movq %%r8, %d(%s)", i, dst_reg);
+    n -= 8;
+    i += 8;
+  }
+  while (n > 4) {
+    println("  movl %d(%%rax), %%r8d", i);
+    println("  movl %%r8d, %d(%s)", i, dst_reg);
+    n -= 4;
+    i += 4;
+  }
+  while (n > 2) {
+    println("  movw %d(%%rax), %%r8w", i);
+    println("  movw %%r8w, %d(%s)", i, dst_reg);
+    n -= 2;
+    i += 2;
+  }
+  while (n > 0) {
+    println("  movb %d(%%rax), %%r8b", i);
+    println("  movb %%r8b, %d(%s)", i, dst_reg);
+    --n;
+    ++i;
+  }
+}
+
+static void gen_mem_zero(int offset, int size) {
+  if (size == 1 || size == 2 || size == 4 || size == 8) {
+    println("  mov%c $0, %d(%%rbp)", "-bw-l---q"[size], offset);
+  } else {
+    // `rep stosb` is equivalent to `memset(%rdi, %al, %rcx)`.
+    println("  mov $%d, %%rcx", size);
+    println("  lea %d(%%rbp), %%rdi", offset);
+    println("  mov $0, %%al");
+    println("  rep stosb");
+  }
+}
+
 // Load a value from where %rax is pointing to.
 static void load(Type *ty) {
   switch (ty->kind) {
@@ -221,35 +262,6 @@ static void load(Type *ty) {
     println("  movsxd (%%rax), %%rax");
   } else {
     println("  mov (%%rax), %%rax");
-  }
-}
-
-// Copy n bytes from the source address in %rax to the destination in dst_reg.
-static void gen_mem_copy(const char *dst_reg, int n) {
-  int i = 0;
-  while (n > 8) {
-    println("  movq %d(%%rax), %%r8", i);
-    println("  movq %%r8, %d(%s)", i, dst_reg);
-    n -= 8;
-    i += 8;
-  }
-  while (n > 4) {
-    println("  movl %d(%%rax), %%r8d", i);
-    println("  movl %%r8d, %d(%s)", i, dst_reg);
-    n -= 4;
-    i += 4;
-  }
-  while (n > 2) {
-    println("  movw %d(%%rax), %%r8w", i);
-    println("  movw %%r8w, %d(%s)", i, dst_reg);
-    n -= 2;
-    i += 2;
-  }
-  while (n > 0) {
-    println("  movb %d(%%rax), %%r8b", i);
-    println("  movb %%r8b, %d(%s)", i, dst_reg);
-    --n;
-    ++i;
   }
 }
 
@@ -300,10 +312,7 @@ static void cmp_zero(Type *ty) {
     return;
   }
 
-  if (is_integer(ty) && ty->size <= 4)
-    println("  cmp $0, %%eax");
-  else
-    println("  cmp $0, %%rax");
+  println("  cmp $0, %s", is_integer(ty) && ty->size <= 4 ? "%eax" : "%rax");
 }
 
 enum { I8, I16, I32, I64, U8, U16, U32, U64, F32, F64, F80 };
@@ -839,19 +848,9 @@ static void gen_expr(Node *node) {
     gen_expr(node->lhs);
     cast(node->lhs->ty, node->ty);
     return;
-  case ND_MEMZERO: {
-    int size = node->var->ty->size;
-    if (size == 1 || size == 2 || size == 4 || size == 8) {
-      println("  mov%c $0, %d(%%rbp)", "-bw-l---q"[size], node->var->offset);
-    } else {
-      // `rep stosb` is equivalent to `memset(%rdi, %al, %rcx)`.
-      println("  mov $%d, %%rcx", node->var->ty->size);
-      println("  lea %d(%%rbp), %%rdi", node->var->offset);
-      println("  mov $0, %%al");
-      println("  rep stosb");
-    }
+  case ND_MEMZERO:
+    gen_mem_zero(node->var->offset, node->var->ty->size);
     return;
-  }
   case ND_COND: {
     int c = count();
     gen_expr(node->cond);
