@@ -37,8 +37,8 @@
 * generated code quality
   * constant propagation (parse.c already has eval()...)
   * register allocation rather than stack-based
-  * when should ND_MEMZERO switch over to rep stos? should we unroll more movs?
-  * recognize when a variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
+  * recognize when an array/struct variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
+  * emit ND_MEMZERO for any local that _isn't_ initialized (like -ftrivial-var-auto-init=zero)
   * new_add() uses multiplication rather than shifts
   * general power-of-two multiplication/division to shift conversation
   * general simplification of add/sub/mul/div of 0/1

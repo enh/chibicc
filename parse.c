@@ -1381,16 +1381,20 @@ static Node *create_lvar_init(Initializer *init, Type *ty, InitDesg *desg, Token
 static Node *lvar_initializer(Token **rest, Token *tok, Obj *var) {
   Initializer *init = initializer(rest, tok, var->ty, &var->ty);
   InitDesg desg = {NULL, 0, NULL, var};
+  Node *lvar_init = create_lvar_init(init, var->ty, &desg, tok);
 
-  // If a partial initializer list is given, the standard requires
-  // that unspecified elements are set to 0. Here, we simply
-  // zero-initialize the entire memory region of a variable before
+  // If the initializer is certain to set all of the variable,
+  // we're done.
+  if (var->ty->kind <= TY_PTR) return lvar_init;
+
+  // If a partial initializer list is given,
+  // the standard requires that unspecified elements are set to 0.
+  // Rather than work out whether the whole array/struct is covered,
+  // we simply zero-iniialize the entire memory region before
   // initializing it with user-supplied values.
   Node *lhs = new_node(ND_MEMZERO, tok);
   lhs->var = var;
-
-  Node *rhs = create_lvar_init(init, var->ty, &desg, tok);
-  return new_binary(ND_COMMA, lhs, rhs, tok);
+  return new_binary(ND_COMMA, lhs, lvar_init, tok);
 }
 
 static uint64_t read_buf(char *buf, int sz) {
