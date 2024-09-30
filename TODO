@@ -47,12 +47,12 @@
   * general simplification of i++ to ++i
   * remove jumps over else when there is no else
 * compile-time performance
-  * custom inline ctype
-  * #define isident1() etc
+  * fast-path ASCII decode_utf8()
   * is a bump-pointer mmap() allocator faster? [no need to memset either...]
   * finer-grained token types (no string comparisons for { or +=)?
   * interning?
   * does the whole read_file()+remove_backslash_newlines()+convert_universal_chars() dance make sense, or should we have one pass using fgetc() instead?
+  * why do we set line numbers for tokens so late, in a separate pass?
 * diagnostics
   * at least all the diagnostics that ken's plan9 cc emitted
   * diagnostic for running off the end of a non-void function
