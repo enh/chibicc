@@ -185,25 +185,25 @@ static void gen_addr(Node *node) {
 // Copy n bytes from the source address in %rax to the destination in dst_reg.
 static void gen_mem_copy(const char *dst_reg, int n) {
   int i = 0;
-  while (n > 8) {
+  while (n >= 8) {
     println("  movq %d(%%rax), %%r8", i);
     println("  movq %%r8, %d(%s)", i, dst_reg);
     n -= 8;
     i += 8;
   }
-  while (n > 4) {
+  while (n >= 4) {
     println("  movl %d(%%rax), %%r8d", i);
     println("  movl %%r8d, %d(%s)", i, dst_reg);
     n -= 4;
     i += 4;
   }
-  while (n > 2) {
+  while (n >= 2) {
     println("  movw %d(%%rax), %%r8w", i);
     println("  movw %%r8w, %d(%s)", i, dst_reg);
     n -= 2;
     i += 2;
   }
-  while (n > 0) {
+  while (n >= 1) {
     println("  movb %d(%%rax), %%r8b", i);
     println("  movb %%r8b, %d(%s)", i, dst_reg);
     --n;
@@ -211,15 +211,28 @@ static void gen_mem_copy(const char *dst_reg, int n) {
   }
 }
 
-static void gen_mem_zero(int offset, int size) {
-  if (size == 1 || size == 2 || size == 4 || size == 8) {
-    println("  mov%c $0, %d(%%rbp)", "-bw-l---q"[size], offset);
-  } else {
-    // `rep stosb` is equivalent to `memset(%rdi, %al, %rcx)`.
-    println("  mov $%d, %%rcx", size);
-    println("  lea %d(%%rbp), %%rdi", offset);
-    println("  mov $0, %%al");
-    println("  rep stosb");
+// Zero n bytes starting from offset bytes off %rbp.
+static void gen_mem_zero(int offset, int n) {
+  int i = offset;
+  while (n >= 8) {
+    println("  movq $0, %d(%%rbp)", i);
+    n -= 8;
+    i += 8;
+  }
+  while (n >= 4) {
+    println("  movl $0, %d(%%rbp)", i);
+    n -= 4;
+    i += 4;
+  }
+  while (n >= 2) {
+    println("  movw $0, %d(%%rbp)", i);
+    n -= 2;
+    i += 2;
+  }
+  while (n >= 1) {
+    println("  movb $0, %d(%%rbp)", i);
+    --n;
+    ++i;
   }
 }
 
