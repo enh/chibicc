@@ -3,6 +3,7 @@
 **/*.o
 **/*.s
 **/a.out
+**/perf.data
 /tmp*
 /thirdparty
 /chibicc
