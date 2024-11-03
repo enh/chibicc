@@ -625,8 +625,9 @@ static Type *func_params(Token **rest, Token *tok, Type *ty) {
     cur = cur->next = copy_type(ty2);
   }
 
-  if (cur == &head)
-    is_variadic = true;
+  // In C23, void foo() is a function of no arguments;
+  // prior to C23 it was variadic.
+  // if (cur == &head) is_variadic = true;
 
   ty = func_type(ty);
   ty->params = head.next;

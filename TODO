@@ -6,7 +6,6 @@
   * unnamed arguments in function definitions
   * zero initialization with {}
   * single-argument static_assert
-  * void foo() => void foo(void)
   * [[deprecated]]
   * [[fallthrough]]
   * [[maybe_unused]]
