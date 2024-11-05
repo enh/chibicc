@@ -1,5 +1,9 @@
 #include "test.h"
 
+int c23_ignored_param(int /*ignored*/) {
+  return 42;
+}
+
 int ret3(void) {
   return 3;
   return 5;
@@ -211,6 +215,7 @@ long double to_ldouble(int x) {
 }
 
 int main() {
+  ASSERT(42, c23_ignored_param(2));
   ASSERT(3, ret3());
   ASSERT(8, add2(3, 5));
   ASSERT(2, sub2(5, 3));

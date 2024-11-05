@@ -3160,12 +3160,14 @@ static Token *parse_typedef(Token *tok, Type *basety) {
 }
 
 static void create_param_lvars(Type *param) {
-  if (param) {
-    create_param_lvars(param->next);
-    if (!param->name)
-      error_tok(param->name_pos, "parameter name omitted");
-    new_lvar(get_ident(param->name), param);
-  }
+  if (!param) return;
+
+  create_param_lvars(param->next);
+
+  // C23 anonymous unused parameter?
+  if (!param->name) return;
+
+  new_lvar(get_ident(param->name), param);
 }
 
 // This function matches gotos or labels-as-values with labels.

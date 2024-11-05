@@ -35,6 +35,7 @@
   * can't parse (and bad error message from) <regex.h>
 * generated code quality
   * constant propagation (parse.c already has eval()...)
+  * optimize if (<constant>), while (<constant>), do ... while (<constant>)
   * register allocation rather than stack-based
   * recognize when an array/struct variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
   * emit ND_MEMZERO for any local that _isn't_ initialized (like -ftrivial-var-auto-init=zero)
