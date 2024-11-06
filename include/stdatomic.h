@@ -59,8 +59,8 @@ typedef enum {
 #define atomic_flag_clear(obj) (*(obj) = 0)
 #define atomic_flag_clear_explicit(obj, order) (*(obj) = 0)
 
-typedef _Atomic _Bool atomic_flag;
-typedef _Atomic _Bool atomic_bool;
+typedef _Atomic bool atomic_flag;
+typedef _Atomic bool atomic_bool;
 typedef _Atomic char atomic_char;
 typedef _Atomic signed char atomic_schar;
 typedef _Atomic unsigned char atomic_uchar;

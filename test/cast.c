@@ -41,8 +41,8 @@ int main() {
   ASSERT(-1, ({ typedef short T; T x = 65535; (int)x; }));
   ASSERT(65535, ({ typedef unsigned short T; T x = 65535; (int)x; }));
 
-  ASSERT(0, (_Bool)0.0);
-  ASSERT(1, (_Bool)0.1);
+  ASSERT(false, (bool)0.0);
+  ASSERT(true, (bool)0.1);
   ASSERT(3, (char)3.0);
   ASSERT(1000, (short)1000.3);
   ASSERT(3, (int)3.99);

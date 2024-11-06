@@ -43,9 +43,9 @@ static void *__va_arg_fp(__va_elem *ap, int sz, int align) {
 #define va_arg(ap, ty)                                                  \
   ({                                                                    \
     int klass = __builtin_reg_class(ty);                                \
-    *(ty *)(klass == 0 ? __va_arg_gp(ap, sizeof(ty), _Alignof(ty)) :    \
-            klass == 1 ? __va_arg_fp(ap, sizeof(ty), _Alignof(ty)) :    \
-            __va_arg_mem(ap, sizeof(ty), _Alignof(ty)));                \
+    *(ty *)(klass == 0 ? __va_arg_gp(ap, sizeof(ty), alignof(ty)) :    \
+            klass == 1 ? __va_arg_fp(ap, sizeof(ty), alignof(ty)) :    \
+            __va_arg_mem(ap, sizeof(ty), alignof(ty)));                \
   })
 
 #define va_copy(dest, src) ((dest)[0] = (src)[0])

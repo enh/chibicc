@@ -52,8 +52,8 @@ int div_long(long a, long b) {
   return a / b;
 }
 
-_Bool bool_fn_add(_Bool x) { return x + 1; }
-_Bool bool_fn_sub(_Bool x) { return x - 1; }
+bool bool_fn_add(bool x) { return x + 1; }
+bool bool_fn_sub(bool x) { return x - 1; }
 
 static int static_fn(void) { return 3; }
 
@@ -69,8 +69,8 @@ void ret_none() {
   return;
 }
 
-_Bool true_fn();
-_Bool false_fn();
+bool true_fn();
+bool false_fn();
 char char_fn();
 short short_fn();
 

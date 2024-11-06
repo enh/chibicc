@@ -361,14 +361,14 @@ static void push_tag_scope(Token *tok, Type *ty) {
   hashmap_put2(&scope->tags, tok->loc, tok->len, ty);
 }
 
-// declspec = ("void" | "_Bool" | "char" | "short" | "int" | "long"
+// declspec = ("void" | "bool" | "char" | "short" | "int" | "long"
 //             | "typedef" | "static" | "extern" | "inline"
-//             | "_Thread_local" | "__thread"
+//             | "thread_local"
 //             | "signed" | "unsigned"
 //             | struct-decl | union-decl | typedef-name
 //             | enum-specifier | typeof-specifier
 //             | "const" | "volatile" | "auto" | "register" | "restrict"
-//             | "__restrict" | "__restrict__" | "_Noreturn")+
+//             | "_Noreturn")+
 //
 // The order of typenames in a type-specifier doesn't matter. For
 // example, `int long static` means the same as `static long int`.
@@ -407,7 +407,7 @@ static Type *declspec(Token **rest, Token *tok, VarAttr *attr) {
   while (is_typename(tok)) {
     // Handle storage class specifiers.
     if (equal(tok, "typedef") || equal(tok, "static") || equal(tok, "extern") ||
-        equal(tok, "inline") || equal(tok, "_Thread_local") || equal(tok, "__thread")) {
+        equal(tok, "inline") || equal(tok, "thread_local")) {
       if (!attr)
         error_tok(tok, "storage class specifier is not allowed in this context");
 
@@ -425,7 +425,7 @@ static Type *declspec(Token **rest, Token *tok, VarAttr *attr) {
       if (attr->is_typedef &&
           attr->is_static + attr->is_extern + attr->is_inline + attr->is_tls > 1)
         error_tok(tok, "typedef may not be used together with static,"
-                  " extern, inline, __thread or _Thread_local");
+                  " extern, inline, or thread_local");
       tok = tok->next;
       continue;
     }
@@ -433,8 +433,7 @@ static Type *declspec(Token **rest, Token *tok, VarAttr *attr) {
     // These keywords are recognized but ignored.
     if (consume(&tok, tok, "const") || consume(&tok, tok, "volatile") ||
         consume(&tok, tok, "auto") || consume(&tok, tok, "register") ||
-        consume(&tok, tok, "restrict") || consume(&tok, tok, "__restrict") ||
-        consume(&tok, tok, "__restrict__") || consume(&tok, tok, "_Noreturn"))
+        consume(&tok, tok, "restrict") || consume(&tok, tok, "_Noreturn"))
       continue;
 
     if (equal(tok, "_Atomic")) {
@@ -447,9 +446,9 @@ static Type *declspec(Token **rest, Token *tok, VarAttr *attr) {
       continue;
     }
 
-    if (equal(tok, "_Alignas")) {
+    if (equal(tok, "alignas")) {
       if (!attr)
-        error_tok(tok, "_Alignas is not allowed in this context");
+        error_tok(tok, "alignas is not allowed in this context");
       tok = skip(tok->next, "(");
 
       if (is_typename(tok))
@@ -487,7 +486,7 @@ static Type *declspec(Token **rest, Token *tok, VarAttr *attr) {
     // Handle built-in types.
     if (equal(tok, "void"))
       counter += VOID;
-    else if (equal(tok, "_Bool"))
+    else if (equal(tok, "bool"))
       counter += BOOL;
     else if (equal(tok, "char"))
       counter += CHAR;
@@ -673,8 +672,7 @@ static Type *type_suffix(Token **rest, Token *tok, Type *ty) {
 static Type *pointers(Token **rest, Token *tok, Type *ty) {
   while (consume(&tok, tok, "*")) {
     ty = pointer_to(ty);
-    while (equal(tok, "const") || equal(tok, "volatile") || equal(tok, "restrict") ||
-           equal(tok, "__restrict") || equal(tok, "__restrict__"))
+    while (equal(tok, "const") || equal(tok, "volatile") || equal(tok, "restrict"))
       tok = tok->next;
   }
   *rest = tok;
@@ -1509,11 +1507,11 @@ static bool is_typename(Token *tok) {
 
   if (map.capacity == 0) {
     static char *kw[] = {
-      "void", "_Bool", "char", "short", "int", "long", "struct", "union",
-      "typedef", "enum", "static", "extern", "_Alignas", "signed", "unsigned",
-      "const", "volatile", "auto", "register", "restrict", "__restrict",
-      "__restrict__", "_Noreturn", "float", "double", "typeof", "inline",
-      "_Thread_local", "__thread", "_Atomic",
+      "alignas", "auto", "bool", "char", "const", "double", "enum", "extern",
+      "float", "inline", "int", "long", "register", "restrict", "short",
+      "signed", "static", "struct", "thread_local", "typedef", "typeof",
+      "union", "unsigned", "void", "volatile", "_Atomic", "_BitInt",
+      "_Complex", "_Decimal128", "_Decimal32", "_Decimal64", "_Noreturn",
     };
 
     for (int i = 0; i < sizeof(kw) / sizeof(*kw); ++i)
@@ -2988,11 +2986,13 @@ static Node *generic_selection(Token **rest, Token *tok) {
 //         | "(" expr ")"
 //         | "sizeof" "(" type-name ")"
 //         | "sizeof" unary
-//         | "_Alignof" "(" type-name ")"
-//         | "_Alignof" unary
+//         | "alignof" "(" type-name ")"
+//         | "alignof" unary
 //         | "_Generic" generic-selection
 //         | "__builtin_types_compatible_p" "(" type-name, type-name, ")"
 //         | "__builtin_reg_class" "(" type-name ")"
+//         | "false"
+//         | "true"
 //         | ident
 //         | str
 //         | num
@@ -3037,13 +3037,13 @@ static Node *primary(Token **rest, Token *tok) {
     return new_ulong(node->ty->size, tok);
   }
 
-  if (equal(tok, "_Alignof") && equal(tok->next, "(") && is_typename(tok->next->next)) {
+  if (equal(tok, "alignof") && equal(tok->next, "(") && is_typename(tok->next->next)) {
     Type *ty = typename(&tok, tok->next->next);
     *rest = skip(tok, ")");
     return new_ulong(ty->align, tok);
   }
 
-  if (equal(tok, "_Alignof")) {
+  if (equal(tok, "alignof")) {
     Node *node = unary(rest, tok->next);
     add_type(node);
     return new_ulong(node->ty->align, tok);
@@ -3093,6 +3093,15 @@ static Node *primary(Token **rest, Token *tok) {
     node->rhs = assign(&tok, tok);
     *rest = skip(tok, ")");
     return node;
+  }
+
+  if (equal(tok, "false")) {
+    *rest = tok->next;
+    return new_num(0, tok);
+  }
+  if (equal(tok, "true")) {
+    *rest = tok->next;
+    return new_num(1, tok);
   }
 
   if (tok->kind == TK_IDENT) {

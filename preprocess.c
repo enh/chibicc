@@ -1053,10 +1053,15 @@ void init_macros(void) {
   define_macro("__STDC_NO_COMPLEX__", "1");
   define_macro("__STDC_UTF_16__", "1");
   define_macro("__STDC_UTF_32__", "1");
-  define_macro("__STDC_VERSION__", "201112L");
+  define_macro("__STDC_VERSION__", "202311L");
   define_macro("__STDC__", "1");
   define_macro("__USER_LABEL_PREFIX__", "");
-  define_macro("__alignof__", "_Alignof");
+  define_macro("_Alignas", "alignas");
+  define_macro("_Alignof", "alignof");
+  define_macro("_Bool", "bool");
+  define_macro("_Static_assert", "static_assert");
+  define_macro("_Thread_local", "thread_local");
+  define_macro("__alignof__", "alignof");
   define_macro("__amd64", "1");
   define_macro("__amd64__", "1");
   define_macro("__chibicc__", "1");
@@ -1065,7 +1070,10 @@ void init_macros(void) {
   define_macro("__inline__", "inline");
   define_macro("__linux", "1");
   define_macro("__linux__", "1");
+  define_macro("__restrict", "restrict");
+  define_macro("__restrict__", "restrict");
   define_macro("__signed__", "signed");
+  define_macro("__thread", "thread_local");
   define_macro("__typeof__", "typeof");
   define_macro("__unix", "1");
   define_macro("__unix__", "1");

@@ -10,12 +10,12 @@ int main() {
 
   ASSERT(8, ({ long long x; sizeof(x); }));
 
-  ASSERT(0, ({ _Bool x=0; x; }));
-  ASSERT(1, ({ _Bool x=1; x; }));
-  ASSERT(1, ({ _Bool x=2; x; }));
-  ASSERT(1, (_Bool)1);
-  ASSERT(1, (_Bool)2);
-  ASSERT(0, (_Bool)(char)256);
+  ASSERT(false, ({ bool x=0; x; }));
+  ASSERT(true, ({ bool x=1; x; }));
+  ASSERT(true, ({ bool x=2; x; }));
+  ASSERT(true, (bool)1);
+  ASSERT(true, (bool)2);
+  ASSERT(false, (bool)(char)256);
 
   printf("OK\n");
   return 0;

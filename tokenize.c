@@ -208,14 +208,18 @@ static bool is_keyword(Token *tok) {
 
   if (map.capacity == 0) {
     static char *kw[] = {
-      "return", "if", "else", "for", "while", "int", "sizeof", "char",
-      "struct", "union", "short", "long", "void", "typedef", "_Bool",
-      "enum", "static", "goto", "break", "continue", "switch", "case",
-      "default", "extern", "_Alignof", "_Alignas", "do", "signed",
-      "unsigned", "const", "volatile", "auto", "register", "restrict",
-      "__restrict", "__restrict__", "_Noreturn", "float", "double",
-      "typeof", "asm", "_Thread_local", "__thread", "_Atomic",
-      "__attribute__",
+      // ISO C23 keywords.
+      "alignas", "alignof", "auto", "bool", "break", "case", "char", "const",
+      "constexpr", "continue", "default", "do", "double", "else", "enum",
+      "extern", "false", "float", "for", "goto", "if", "inline", "int", "long",
+      "nullptr", "register", "restrict", "return", "short", "signed", "sizeof",
+      "static", "static_assert", "struct", "switch", "thread_local", "true",
+      "typedef", "typeof", "typeof_unqual", "union", "unsigned", "void",
+      "volatile", "while", "_Atomic", "_BitInt", "_Complex", "_Decimal128",
+      "_Decimal32", "_Decimal64", "_Generic", "_Imaginary", "_Noreturn",
+
+      // Extensions.
+      "asm", "__attribute__",
     };
 
     for (int i = 0; i < sizeof(kw) / sizeof(*kw); ++i)

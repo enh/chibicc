@@ -3,9 +3,7 @@
 * use .rodata
 * .ident?
 * c23 language features
-  * unnamed arguments in function definitions
   * zero initialization with {}
-  * single-argument static_assert
   * [[deprecated]]
   * [[fallthrough]]
   * [[maybe_unused]]
@@ -16,17 +14,12 @@
   * #embed
   * #pragma once
   * __has_include()
-  * true/false
-  * _Alignas -> alignas
-  * _Alignof -> alignof
-  * _Bool -> bool
-  * _Static_assert -> static_assert
-  * _Thread_local -> thread_local
   * __builtin_*_overflow() for <stdckdint.h>
   * nullptr/nullptr_t
   * constexpr
   * typeof()
   * ' digit separator for literals
+  * static_assert
 * c extensions
   * __attribute__((format))
   * __builtin_*() for <math.h>
