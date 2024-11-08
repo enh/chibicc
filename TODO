@@ -9,17 +9,17 @@
   * [[maybe_unused]]
   * [[nodiscard]]
   * [[noreturn]]
-  * u8''
-  * #error/#warning
+  * char8_t and u8''
   * #embed
-  * #pragma once
   * __has_include()
+  * __builtin_unreachable() for unreachable()
   * __builtin_*_overflow() for <stdckdint.h>
   * nullptr/nullptr_t
   * constexpr
   * typeof()
   * ' digit separator for literals
   * static_assert
+  * enum with underlying type
 * c extensions
   * __attribute__((format))
   * __builtin_*() for <math.h>
@@ -27,7 +27,7 @@
   * _N() macro in kconfig
   * can't parse (and bad error message from) <regex.h>
 * generated code quality
-  * constant propagation (parse.c already has eval()...)
+  * constant propagation (parse.c already has is_const_expr() and eval()...)
   * optimize if (<constant>), while (<constant>), do ... while (<constant>)
   * register allocation rather than stack-based
   * recognize when an array/struct variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
@@ -50,6 +50,7 @@
   * at least all the diagnostics that ken's plan9 cc emitted
   * diagnostic for running off the end of a non-void function
   * only errors, no warnings, like java?
+  * better diagnostic for the missing return type in `_Noreturn foo();`
 * why does md2.o end up in the top-level directory?
 * does asan find any bugs?
 * add arm64 backend
