@@ -39,6 +39,9 @@
   * simplification of i++ to ++i in for statements
   * general simplification of i++ to ++i
   * remove jumps over else when there is no else
+  * remove jumps over ud2 when return is the last statement
+    * ...and warn/error when it's possible to fall off the end
+  * no prolog/epilog for leaf functions
 * compile-time performance
   * fast-path ASCII decode_utf8()
   * is a bump-pointer mmap() allocator faster? [no need to memset either...]
