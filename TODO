@@ -10,42 +10,43 @@
   * [[nodiscard]]
   * [[noreturn]]
   * char8_t and u8''
-  * #embed
-  * __has_include()
+  - #embed
+  - __has_include()
   * __builtin_unreachable() for unreachable()
   * __builtin_*_overflow() for <stdckdint.h>
   * nullptr/nullptr_t
-  * constexpr
-  * typeof()
-  * ' digit separator for literals
-  * static_assert
-  * enum with underlying type
+  - constexpr
+  + typeof() (chibicc already has it)
+  - ' digit separator for literals
+  - static_assert
+  - enum with underlying type
 * c extensions
   * __attribute__((format))
   * __builtin_*() for <math.h>
-* fix toybox build
+- fix toybox build
   * _N() macro in kconfig
   * can't parse (and bad error message from) <regex.h>
 * generated code quality
-  * constant propagation (parse.c already has is_const_expr() and eval()...)
+  - constant propagation (parse.c already has is_const_expr() and eval()...)
   * optimize if (<constant>), while (<constant>), do ... while (<constant>)
-  * register allocation rather than stack-based
+  + register allocation rather than stack-based (first 6 slots are converted to register)
   * recognize when an array/struct variable is fully initialized in lvar_initializer() and drop the ND_MEMZERO
   * emit ND_MEMZERO for any local that _isn't_ initialized (like -ftrivial-var-auto-init=zero)
-  * new_add() uses multiplication rather than shifts
-  * general power-of-two multiplication/division to shift conversation
-  * general simplification of add/sub/mul/div of 0/1
+  - new_add() uses multiplication rather than shifts
+  - general power-of-two multiplication/division to shift conversation
+  - general simplification of add/sub/mul/div of 0/1
     * remove new_add()/new_sub() mul/div by one workarounds
-  * simplification of i++ to ++i in for statements
-  * general simplification of i++ to ++i
-  * remove jumps over else when there is no else
+  - simplification of i++ to ++i in for statements
+  - general simplification of i++ to ++i
+  - remove jumps over else when there is no else
   * remove jumps over ud2 when return is the last statement
     * ...and warn/error when it's possible to fall off the end
   * no prolog/epilog for leaf functions
+  + x86 memory operand instruction selectoin
 * compile-time performance
-  * fast-path ASCII decode_utf8()
+  - fast-path ASCII decode_utf8()
   * is a bump-pointer mmap() allocator faster? [no need to memset either...]
-  * finer-grained token types (no string comparisons for { or +=)?
+  + finer-grained token types (no string comparisons for { or +=)? (tried but wasn't faster, I suspect that more logic dragged down the tokenize loop)
   * interning?
   * does the whole read_file()+remove_backslash_newlines()+convert_universal_chars() dance make sense, or should we have one pass using fgetc() instead?
   * why do we set line numbers for tokens so late, in a separate pass?
@@ -55,7 +56,7 @@
   * only errors, no warnings, like java?
   * better diagnostic for the missing return type in `_Noreturn foo();`
 * why does md2.o end up in the top-level directory?
-* does asan find any bugs?
++ does asan find any bugs? (I have CI running with asan on)
 * add arm64 backend
 * add riscv64 backend
 * make long double == double for all architectures?
