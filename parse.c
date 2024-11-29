@@ -3174,9 +3174,10 @@ static void create_param_lvars(Type *param) {
   create_param_lvars(param->next);
 
   // C23 anonymous unused parameter?
-  if (!param->name) return;
-
-  new_lvar(get_ident(param->name), param);
+  if (!param->name)
+    new_lvar("", param);
+  else
+    new_lvar(get_ident(param->name), param);
 }
 
 // This function matches gotos or labels-as-values with labels.
