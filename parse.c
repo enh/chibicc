@@ -1386,6 +1386,8 @@ static Node *lvar_initializer(Token **rest, Token *tok, Obj *var) {
   // we're done.
   if (var->ty->kind <= TY_PTR) return lvar_init;
 
+  if (init->expr) return lvar_init;
+
   // If a partial initializer list is given,
   // the standard requires that unspecified elements are set to 0.
   // Rather than work out whether the whole array/struct is covered,
